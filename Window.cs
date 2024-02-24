@@ -67,6 +67,14 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
     internal Thread _renderThread;
     internal Thread _updateThread;
 
+    internal void MakeGraphicsInstance() {
+        lock (_renderLock) {
+            Graphics?.Dispose();
+            Graphics = new(this);
+            Graphics.Load();
+        }
+    }
+
     /// <summary>
     /// Multithreaded render loop method
     /// </summary>
@@ -74,10 +82,13 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         unsafe {
             _threadedContext.MakeCurrent();
             _renderTimer.Restart();
+            MakeGraphicsInstance();
 
             while (IsMultiThreaded) {
                 RenderTime.Update((float)_renderTimer.Elapsed.TotalSeconds);
                 _renderTimer.Restart();
+
+                GL.ClearColor(0, 0, 0, 0);
                 
                 lock (_renderLock) {
                     Canvas.Clear(SKColors.Transparent);
@@ -88,8 +99,6 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
                 _threadedContext.SwapBuffers();
                 Thread.Sleep((int)(1000 / RenderFrequency));
             }
-
-            _threadedContext.MakeNoneCurrent();
         }
     }
 
@@ -120,34 +129,36 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         _updateThread.Start();
     }
 
+    internal void JoinThreads() {
+        _renderThread?.Join();
+        _updateThread?.Join();
+    }
+
+    internal void HandleMultithreaded(bool threaded) {
+        if (threaded) {
+            this.Context.MakeNoneCurrent();
+            SpawnThreads();
+        } else {
+            JoinThreads();
+            _threadedContext?.MakeNoneCurrent();
+            this.Context.MakeCurrent();
+            MakeGraphicsInstance();
+        }
+    }
+
     /// <summary>
     /// If true, the window will use multithreading for rendering and updating
     /// </summary>
     public new bool IsMultiThreaded {
-        get => _isMultithreaded;
-        set {
-            if (value == _isMultithreaded)
-                return;
+    get => _isMultithreaded;
+    set {
+        if (value == _isMultithreaded)
+            return;
 
-            _isMultithreaded = value;
-
-            if (value) {
-                this.Context.MakeNoneCurrent();
-                _threadedContext.MakeCurrent();
-            } else {
-                _threadedContext.MakeNoneCurrent();
-                this.Context.MakeCurrent();
-            }
-
-            lock (_renderLock) {
-                Graphics.Dispose();
-                Graphics = new(this);
-                Graphics.Load();
-            }
-
-            if (value) SpawnThreads();
-        }
+        _isMultithreaded = value;
+        HandleMultithreaded(value);
     }
+}
     private bool _isMultithreaded = true;
 
     /// <summary>
@@ -181,7 +192,7 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
     #region Sealed overrides
     protected unsafe sealed override void OnLoad() {
         base.OnLoad();
-        this.Context.MakeNoneCurrent();
+        // this.Context.MakeNoneCurrent();
 
         RenderTime = new(this);
         UpdateTime = new(this);
@@ -190,12 +201,8 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         _renderTimer = new();
 
         _threadedContext = new GLFWGraphicsContext(this.WindowPtr);
-        _threadedContext.MakeCurrent();
 
-        Graphics = new(this);
-        Graphics.Load();
-
-        if (IsMultiThreaded) SpawnThreads();
+        HandleMultithreaded(IsMultiThreaded);
     }
 
     public new Vector2i Size => FramebufferSize;
