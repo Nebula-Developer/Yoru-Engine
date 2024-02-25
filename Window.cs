@@ -9,6 +9,11 @@ using SkiaSharp;
 using System.Diagnostics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
+public class RootElement : Element {
+    public RootElement(Window window) =>
+        this.Window = window;
+}
+
 public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
     Flags = ContextFlags.ForwardCompatible | ContextFlags.Debug,
     Title = "Graphics Window",
@@ -34,6 +39,18 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
     /// SkiaSharp canvas used for drawing within the render thread
     /// </summary>
     public SKCanvas Canvas => Graphics.Surface.Canvas;
+
+    /// <summary>
+    /// The root element that holds all active elements
+    /// </summary>
+    public RootElement Element {
+        get {
+            if (_element == null)
+                _element = new(this);
+            return _element;
+        }
+    }
+    private RootElement _element;
 
     /// <summary>
     /// If singlethreaded, this is the primary update/render frequency
@@ -75,6 +92,19 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         }
     }
 
+    internal new void RenderFrame(IGLFWGraphicsContext context = null) {
+        lock (_renderLock) {
+            Canvas.Clear();
+            Element.RenderSelf();
+            Render();
+            Canvas.Flush();
+        }
+        
+        if (context != null)
+            context.SwapBuffers();
+    }
+
+
     /// <summary>
     /// Multithreaded render loop method
     /// </summary>
@@ -87,16 +117,8 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
             while (IsMultiThreaded) {
                 RenderTime.Update((float)_renderTimer.Elapsed.TotalSeconds);
                 _renderTimer.Restart();
-
-                GL.ClearColor(0, 0, 0, 0);
                 
-                lock (_renderLock) {
-                    Canvas.Clear(SKColors.Transparent);
-                    Render();
-                    Canvas.Flush();
-                }
-
-                _threadedContext.SwapBuffers();
+                RenderFrame(_threadedContext);
                 Thread.Sleep((int)(1000 / RenderFrequency));
             }
         }
@@ -112,8 +134,9 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
             UpdateTime.Update((float)_updateTimer.Elapsed.TotalSeconds);
             _updateTimer.Restart();
 
+            Element.UpdateSelf();
             Update();
-
+            
             Thread.Sleep((int)(1000 / UpdateFrequency));
         }
     }
@@ -172,6 +195,11 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
     public virtual void Update() { }
 
     /// <summary>
+    /// Invokable load method for inheriting classes
+    /// </summary>
+    public new virtual void Load() { }
+
+    /// <summary>
     /// Invokable resize method for inheriting classes
     /// </summary>
     /// <param name="size"></param>
@@ -202,6 +230,7 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
 
         _threadedContext = new GLFWGraphicsContext(this.WindowPtr);
 
+        Load();
         HandleMultithreaded(IsMultiThreaded);
     }
 
@@ -214,7 +243,8 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         // on the render thread as it reinstantiates the graphics context
         lock (_renderLock)
             Graphics.Resize(e.Size);
-        
+
+        Element.ResizeSelf(e.Size);        
         Resize(e.Size);
     }
 
@@ -234,10 +264,8 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         
         base.OnRenderFrame(args);
         RenderTime.Update((float)args.Time);
-        Canvas.Clear(SKColors.Transparent);
-        Render();
-        Canvas.Flush();
-        SwapBuffers();
+        
+        RenderFrame(Context);
     }
 
     /// <summary>
@@ -249,6 +277,7 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
 
         base.OnUpdateFrame(args);
         UpdateTime.Update((float)args.Time);
+        Element.UpdateSelf();
         Update();
     }
     #endregion

@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="opentk" Version="4.8.2" />
     <PackageReference Include="skiasharp" Version="2.88.7" />
+    <PackageReference Include="Topten.RichTextKit" Version="0.4.166" />
   </ItemGroup>
 
 </Project>
