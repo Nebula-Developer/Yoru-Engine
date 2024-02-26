@@ -103,10 +103,10 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
             Element.RenderSelf();
             Render();
             Canvas.Flush();
+
+            if (context != null)
+                context.SwapBuffers();
         }
-        
-        if (context != null)
-            context.SwapBuffers();
     }
 
 
