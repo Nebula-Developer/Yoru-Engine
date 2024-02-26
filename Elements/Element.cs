@@ -2,7 +2,6 @@
 
 using OpenTK.Mathematics;
 using SkiaSharp;
-using Topten.RichTextKit;
 
 public class CircularElementReferenceException : Exception {
     public CircularElementReferenceException() : base("Circular reference detected. Setting this element as its own ancestor or descendant is not allowed.") { }
@@ -121,7 +120,9 @@ public class Element {
         int count = Window.Canvas.Save();
         Transform.ApplyToCanvas(Window.Canvas);
 
-        Render();
+        if (ShouldRender())
+            Render();
+        
         foreach (Element child in Children)
             child.RenderSelf();
         Window.Canvas.RestoreToCount(count);
@@ -133,8 +134,21 @@ public class Element {
             child.UpdateSelf();
     }
 
+    public bool ShouldRender() {
+        SKPoint ltPos = Window.Canvas.TotalMatrix.MapPoint(new SKPoint(Transform.Size.X, Transform.Size.Y));
+
+        if (ltPos.X < 0 || ltPos.Y < 0)
+            return false;
+
+        if (Transform.WorldPosition.X > Window.Size.X || Transform.WorldPosition.Y > Window.Size.Y)
+            return false;
+
+        return true;
+    }
+
     public void ResizeSelf(Vector2 size) {
         Resize(size);
+        
         foreach (Element child in Children)
             child.ResizeSelf(size);
     }
@@ -152,11 +166,6 @@ public class BoxElement : Element {
 
     public override void Render() =>
         Window.Canvas.DrawRect(0, 0, Transform.Size.X, Transform.Size.Y, Paint);
-
-    public override void Update() {
-        base.Update();
-        Transform.LocalRotation += Window.UpdateTime.DeltaTime * 100;
-    }
 }
 
 public class SimpleText : Element {

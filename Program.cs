@@ -1,27 +1,39 @@
-﻿using System;
-using System.Diagnostics;
-using System.Security.Cryptography.X509Certificates;
-using System.Transactions;
+﻿#pragma warning disable CS0162
+
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 
 public class MyWindow : Window {
-    private SimpleText Text = new();
+    private SimpleText FPSText = new();
+    // public BoxElement Box = new();
+    public BoxElement Box = new();
+
 
     public override void Load() {
         base.Load();
-        Element.AddChild(Text);
 
-        Text.ZIndex = 100;
-        Text.TextColor = SKColors.Pink;
-        Text.FontSize = 60;
+        Box.Color = SKColors.White;
+        Box.Transform.Size = new(50);
+        Element.AddChild(Box);
+
+        FPSText.ZIndex = 100;
+        FPSText.TextColor = SKColors.White;
+        FPSText.FontSize = 20;
+        FPSText.Transform.WorldPosition = new(100, 100);
+        Element.AddChild(FPSText);
     }
 
     public override void Render() {
         base.Render();
-        Text.Text = "FPS: " + (1 / RenderTime.DeltaTime).ToString("0.00");
+        FPSText.Text = "FPS: " + (1 / RenderTime.DeltaTime).ToString("0.00");
+    }
+
+    public override void Update() {
+        base.Update();
+        Box.Transform.LocalRotation += 100 * UpdateTime.DeltaTime;
+        Box.Transform.WorldPosition = MousePosition * 2;
     }
 
     public override void KeyDown(KeyboardKeyEventArgs e) {
@@ -86,21 +98,9 @@ public static class Program {
         window.UpdateFrequency = 144;
         window.RenderFrequency = 144;
 
-        for (int i = 0; i < 100; i++) {
-            BoxElement box = new() {
-                Color = new(255, 255, 255),
-                Transform = new() {
-                    Size = new(10, 10),
-                    LocalPosition = new(i * 10, 10),
-                    WorldRotation = i
-                },
-                ZIndex = i
-            };
-            window.Element.AddChild(box);
-        }
-
         window.Run();
 
+        return;
         for (int i = 0; i < 10; i++) {
             Element elm = new();
             // elm.Transform.ParentScale = Vector2.One;

@@ -1,17 +1,22 @@
 #nullable disable
 
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Graphics;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using SkiaSharp;
 using System.Diagnostics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 
 public class RootElement : Element {
-    public RootElement(Window window) =>
+    public RootElement(Window window) {
         this.Window = window;
+        Transform.Size = window.Size;
+    }
+
+
+    public override void Resize(Vector2 size) {
+        Console.WriteLine("Resized root elm to: " + size);
+        Transform.Size = size;
+    }
 }
 
 public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
@@ -220,7 +225,6 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
     #region Sealed overrides
     protected unsafe sealed override void OnLoad() {
         base.OnLoad();
-        // this.Context.MakeNoneCurrent();
 
         RenderTime = new(this);
         UpdateTime = new(this);
@@ -230,6 +234,10 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
 
         _threadedContext = new GLFWGraphicsContext(this.WindowPtr);
 
+        // The load method comes before our multithread handling
+        // to ensure we load before instantiating our threads, or
+        // enabling the singlethreaded listeners (which is handled
+        // by opentk)
         Load();
         HandleMultithreaded(IsMultiThreaded);
     }
@@ -237,8 +245,11 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
     public new Vector2i Size => FramebufferSize;
     public Vector2i WindowSize => base.Size;
 
+    public bool UseResizeRefreshing = true;
+
     protected sealed override void OnFramebufferResize(FramebufferResizeEventArgs e) {
         base.OnFramebufferResize(e);
+
         // Do not remove the lock, otherwise the graphics context will be disposed
         // on the render thread as it reinstantiates the graphics context
         lock (_renderLock)
@@ -246,6 +257,20 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
 
         Element.ResizeSelf(e.Size);        
         Resize(e.Size);
+
+        if (UseResizeRefreshing && IsMultiThreaded) {
+            RenderTime.Update((float)_renderTimer.Elapsed.TotalSeconds);
+            _renderTimer.Restart();
+            
+            _threadedContext.MakeNoneCurrent();
+            this.Context.MakeCurrent();
+
+            // FrameBufferResize is called from the main thread, therefore
+            // we need to use RenderFrame via the main thread's context
+            RenderFrame(this.Context);
+
+            _threadedContext.MakeCurrent();
+        }
     }
 
     protected sealed override void OnKeyDown(KeyboardKeyEventArgs e) {
