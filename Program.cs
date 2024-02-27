@@ -7,21 +7,53 @@ using SkiaSharp;
 
 public class MyWindow : Window {
     private SimpleText FPSText = new();
-    // public BoxElement Box = new();
-    public BoxElement Box = new();
 
+
+    BoxElement center = new();
 
     public override void Load() {
         base.Load();
 
-        Box.Color = SKColors.White;
-        Box.Transform.Size = new(50);
-        Element.AddChild(Box);
+        center.Color = SKColors.Orange;
+        center.ZIndex = 999;
+        center.Transform.OffsetPosition = new(0.5f, 0.5f);
+        center.Transform.AnchorPosition = new(0.5f, 0.5f);
+        center.Transform.Size = new(100, 100);
+        Element.AddChild(center);
 
-        FPSText.ZIndex = 100;
+        BoxElement _box = new();
+        _box.Transform.AnchorPosition = new(1, 1);
+        _box.Transform.OffsetPosition = new(1, 1);
+        _box.Transform.ScaleWidth = true;
+        _box.Transform.Size = new(0, 50);
+        _box.Color = SKColors.White;
+        Element.AddChild(_box);
+
+        BoxElement inner = new();
+        inner.Transform.AnchorPosition = new(0.5f, 0.5f);
+        inner.Transform.OffsetPosition = new(0.5f, 0.5f);
+        inner.Transform.ScaleHeight = true;
+        inner.Transform.Size = new(50, 0);
+        inner.Color = SKColors.Red;
+        _box.AddChild(inner);
+
+        BoxElement background = new();
+        background.Transform.ParentScale = Vector2.One;
+        background.Color = SKColors.Gray;
+        background.ZIndex = -1;
+        Element.AddChild(background);
+
+        BoxElement top = new();
+        top.Transform.ScaleWidth = true;
+        top.Transform.Size = new(0, 50);
+        top.Color = SKColors.White;
+        top.ZIndex = 1;
+        Element.AddChild(top);
+
+        FPSText.Transform.WorldPosition = new(100, 100);
         FPSText.TextColor = SKColors.White;
         FPSText.FontSize = 20;
-        FPSText.Transform.WorldPosition = new(100, 100);
+        FPSText.ZIndex = 100;
         Element.AddChild(FPSText);
     }
 
@@ -32,8 +64,10 @@ public class MyWindow : Window {
 
     public override void Update() {
         base.Update();
-        Box.Transform.LocalRotation += 100 * UpdateTime.DeltaTime;
-        Box.Transform.WorldPosition = MousePosition * 2;
+
+        float time = UpdateTime.Time;
+        float valMod = 1 - (time % 0.5f / 0.5f);
+        center.Transform.Size = new(50 + (valMod * 50));
     }
 
     public override void KeyDown(KeyboardKeyEventArgs e) {
@@ -59,100 +93,11 @@ public class MyWindow : Window {
 }
 
 public static class Program {
-    public static string SetX(int x) => "\x1b[" + x + "G";
-
-    public static string FormatLogs(params string[] logs) {
-        string result = "";
-        for (int i = 0; i < logs.Length; i++) {
-            result += SetX(i * 30) + logs[i];
-        }
-
-        return result;
-    }
-
-    public static string LogElementSize(Element element) {
-        return FormatLogs(
-            "LocalOffset: " + element.Transform.LocalSizeOffset,
-            "Size: " + element.Transform.Size,
-            "ParentScale: " + element.Transform.ParentScale
-        );
-    }
-
-    public static string CheckBoxTicked(bool value) => value ? "☑" : "☐";
-
-    public static string LogElementPosition(Element element) {
-        return FormatLogs(
-            "LocalPosition: " + element.Transform.LocalPosition,
-            "WorldPosition: " + element.Transform.WorldPosition,
-            "AnchorPosition: " + element.Transform.AnchorPosition,
-            "OffsetPosition: " + element.Transform.OffsetPosition,
-            "PivotPosition: " + element.Transform.PivotPosition,
-            "Size: " + element.Transform.Size
-        );
-    }
-
-    public static List<Element> elements = new();
-
     public static void Main(string[] args) {
         MyWindow window = new();
         window.UpdateFrequency = 144;
         window.RenderFrequency = 144;
 
         window.Run();
-
-        return;
-        for (int i = 0; i < 10; i++) {
-            Element elm = new();
-            // elm.Transform.ParentScale = Vector2.One;
-            elm.Parent = elements.Count > 0 ? elements[elements.Count - 1] : null;
-            elements.Add(elm);
-        }
-
-        while (true) {
-            Console.Clear();
-            
-            for (int i = 0; i < elements.Count; i++)
-                Console.WriteLine(i + ": \n" + LogElementPosition(elements[i]));
-
-            try {
-                string s = Console.ReadLine() ?? "";
-
-                if (s.Length < 5) continue;
-
-                Element element = elements[int.Parse(s[0].ToString())];
-
-                Vector2 value = new();
-                string[] values = s.Substring(2).Split(',');
-                if (values.Length < 2) continue;
-
-                value.X = float.Parse(values[0]);
-                value.Y = float.Parse(values[1]);
-
-                switch (s[1]) {
-                    case 'l':
-                        element.Transform.LocalPosition = value;
-                        break;
-                    case 'w':
-                        element.Transform.WorldPosition = value;
-                        break;
-                    case 'a':
-                        element.Transform.AnchorPosition = value;
-                        break;
-                    case 'o':
-                        element.Transform.OffsetPosition = value;
-                        break;
-                    case 'p':
-                        element.Transform.PivotPosition = value;
-                        break;
-                    case 's':
-                        element.Transform.Size = value;
-                        break;
-                }
-            } catch (Exception e) {
-                Console.WriteLine(e);
-                Console.ReadKey();
-            }
-        }
-        
     }
 }

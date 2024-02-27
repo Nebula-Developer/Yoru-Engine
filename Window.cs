@@ -1,29 +1,15 @@
 #nullable disable
 
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using SkiaSharp;
 using System.Diagnostics;
 
-public class RootElement : Element {
-    public RootElement(Window window) {
-        this.Window = window;
-        Transform.Size = window.Size;
-    }
-
-
-    public override void Resize(Vector2 size) {
-        Console.WriteLine("Resized root elm to: " + size);
-        Transform.Size = size;
-    }
-}
-
 public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
-    Flags = ContextFlags.ForwardCompatible | ContextFlags.Debug,
-    Title = "Graphics Window",
-    // TransparentFramebuffer = true,
-    // WindowBorder = WindowBorder.Hidden
+    Flags = ContextFlags.ForwardCompatible,
+    Title = "Graphics Window"
 }) {
     /// <summary>
     /// Graphical context for the window (OpenTK / SkiaSharp wrapper)
@@ -245,32 +231,20 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
     public new Vector2i Size => FramebufferSize;
     public Vector2i WindowSize => base.Size;
 
-    public bool UseResizeRefreshing = true;
+    // TODO: Reimplement
+    // public bool UseResizeRefreshing = true;
 
     protected sealed override void OnFramebufferResize(FramebufferResizeEventArgs e) {
         base.OnFramebufferResize(e);
-
+        
         // Do not remove the lock, otherwise the graphics context will be disposed
         // on the render thread as it reinstantiates the graphics context
+        // GL.Viewport(0, 0, e.Width, e.Height);
         lock (_renderLock)
             Graphics.Resize(e.Size);
-
+        
         Element.ResizeSelf(e.Size);        
         Resize(e.Size);
-
-        if (UseResizeRefreshing && IsMultiThreaded) {
-            RenderTime.Update((float)_renderTimer.Elapsed.TotalSeconds);
-            _renderTimer.Restart();
-            
-            _threadedContext.MakeNoneCurrent();
-            this.Context.MakeCurrent();
-
-            // FrameBufferResize is called from the main thread, therefore
-            // we need to use RenderFrame via the main thread's context
-            RenderFrame(this.Context);
-
-            _threadedContext.MakeCurrent();
-        }
     }
 
     protected sealed override void OnKeyDown(KeyboardKeyEventArgs e) {

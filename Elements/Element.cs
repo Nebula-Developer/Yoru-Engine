@@ -84,14 +84,8 @@ public class Element {
 
     public void AddChild(Element child) {
         if (!_children.Contains(child)) {
-            int index = 0;
-            for (int i = 0; i < _children.Count; i++) {
-                if (_children[i].ZIndex > child.ZIndex) {
-                    index = i;
-                    break;
-                }
-            }
-            _children.Insert(index, child);
+            _children.Add(child);
+            _children.Sort((a, b) => a.ZIndex.CompareTo(b.ZIndex));
         }
 
         if (child.Parent != this)
