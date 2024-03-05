@@ -6,24 +6,17 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using SkiaSharp;
 using System.Diagnostics;
+using Yume.Graphics.Elements;
+
+namespace Yume.Graphics.Windowing;
 
 public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
     Flags = ContextFlags.ForwardCompatible,
     Title = "Graphics Window"
 }) {
-    /// <summary>
-    /// Graphical context for the window (OpenTK / SkiaSharp wrapper)
-    /// </summary>
     public GraphicsContext Graphics;
 
-    /// <summary>
-    /// TimeContext for the Render thread
-    /// </summary>
     public new TimeContext RenderTime;
-
-    /// <summary>
-    /// TimeContext for the Update thread
-    /// </summary>
     public new TimeContext UpdateTime;
 
     /// <summary>
@@ -34,7 +27,7 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
     /// <summary>
     /// The root element that holds all active elements
     /// </summary>
-    public RootElement Element {
+    protected RootElement Element {
         get {
             if (_element == null)
                 _element = new(this);
@@ -55,7 +48,7 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
             base.UpdateFrequency = _updateFrequency;
         }
     }
-    private float _updateFrequency = 144;
+    private float _updateFrequency = 60;
 
     /// <summary>
     /// Targets the render thread frequency, only if multithreaded
@@ -64,18 +57,18 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         get => _renderFrequency;
         set => _renderFrequency = Math.Max(value, 1);
     }
-    private float _renderFrequency = 144;
+    private float _renderFrequency = 60;
 
-    internal GLFWGraphicsContext _threadedContext;
+    private GLFWGraphicsContext _threadedContext;
     private readonly object _renderLock = new();
 
-    internal Stopwatch _updateTimer;
-    internal Stopwatch _renderTimer;
+    private Stopwatch _updateTimer;
+    private Stopwatch _renderTimer;
 
-    internal Thread _renderThread;
-    internal Thread _updateThread;
+    private Thread _renderThread;
+    private Thread _updateThread;
 
-    internal void MakeGraphicsInstance() {
+    private void MakeGraphicsInstance() {
         lock (_renderLock) {
             Graphics?.Dispose();
             Graphics = new(this);
@@ -83,10 +76,10 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         }
     }
 
-    internal new void RenderFrame(IGLFWGraphicsContext context = null) {
+    private new void RenderFrame(IGLFWGraphicsContext context = null) {
         lock (_renderLock) {
             Canvas.Clear();
-            Element.RenderSelf();
+            Element.RenderSelf(Canvas);
             Render();
             Canvas.Flush();
 
@@ -95,30 +88,21 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         }
     }
 
+    private void RenderThread() {
+        _threadedContext.MakeCurrent();
+        _renderTimer.Restart();
+        MakeGraphicsInstance();
 
-    /// <summary>
-    /// Multithreaded render loop method
-    /// </summary>
-    internal unsafe void RenderThread() {
-        unsafe {
-            _threadedContext.MakeCurrent();
+        while (IsMultiThreaded) { 
+            RenderTime.Update((float)_renderTimer.Elapsed.TotalSeconds);
             _renderTimer.Restart();
-            MakeGraphicsInstance();
 
-            while (IsMultiThreaded) {
-                RenderTime.Update((float)_renderTimer.Elapsed.TotalSeconds);
-                _renderTimer.Restart();
-                
-                RenderFrame(_threadedContext);
-                Thread.Sleep((int)(1000 / RenderFrequency));
-            }
+            RenderFrame(_threadedContext);
+            Thread.Sleep((int)(1000 / RenderFrequency));
         }
     }
 
-    /// <summary>
-    /// Multithreaded update loop method
-    /// </summary>
-    internal unsafe void UpdateThread() {
+    private void UpdateThread() {
         _updateTimer.Restart();
 
         while (IsMultiThreaded) {
@@ -132,10 +116,7 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         }
     }
 
-    /// <summary>
-    /// Instantiates and starts the render and update threads
-    /// </summary>
-    internal void SpawnThreads() {
+    private void SpawnThreads() {
         _renderThread = new(RenderThread);
         _updateThread = new(UpdateThread);
 
@@ -143,12 +124,12 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         _updateThread.Start();
     }
 
-    internal void JoinThreads() {
+    private void JoinThreads() {
         _renderThread?.Join();
         _updateThread?.Join();
     }
 
-    internal void HandleMultithreaded(bool threaded) {
+    private void HandleMultithreaded(bool threaded) {
         if (threaded) {
             this.Context.MakeNoneCurrent();
             SpawnThreads();
@@ -160,57 +141,30 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         }
     }
 
-    /// <summary>
-    /// If true, the window will use multithreading for rendering and updating
-    /// </summary>
     public new bool IsMultiThreaded {
-    get => _isMultithreaded;
-    set {
-        if (value == _isMultithreaded)
-            return;
+        get => _isMultithreaded;
+        set {
+            if (value == _isMultithreaded)
+                return;
 
-        _isMultithreaded = value;
-        HandleMultithreaded(value);
+            _isMultithreaded = value;
+            HandleMultithreaded(value);
+        }
     }
-}
     private bool _isMultithreaded = true;
 
-    /// <summary>
-    /// Invokable render method for inheriting classes
-    /// </summary>
     public virtual void Render() { }
-
-    /// <summary>
-    /// Invokable update method for inheriting classes
-    /// </summary>
     public virtual void Update() { }
-
-    /// <summary>
-    /// Invokable load method for inheriting classes
-    /// </summary>
     public new virtual void Load() { }
-
-    /// <summary>
-    /// Invokable resize method for inheriting classes
-    /// </summary>
-    /// <param name="size"></param>
+    public new virtual void Unload() { }
     public new virtual void Resize(Vector2i size) { }
-
-    /// <summary>
-    /// Invokable keydown method for inheriting classes
-    /// </summary>
-    /// <param name="e"></param>
     public new virtual void KeyDown(KeyboardKeyEventArgs e) { }
-
-    /// <summary>
-    /// Invokable keyup method for inheriting classes
-    /// </summary>
-    /// <param name="e"></param>
     public new virtual void KeyUp(KeyboardKeyEventArgs e) { }
 
     #region Sealed overrides
     protected unsafe sealed override void OnLoad() {
         base.OnLoad();
+        base.UpdateFrequency = _updateFrequency;
 
         RenderTime = new(this);
         UpdateTime = new(this);
@@ -220,31 +174,46 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
 
         _threadedContext = new GLFWGraphicsContext(this.WindowPtr);
 
-        // The load method comes before our multithread handling
-        // to ensure we load before instantiating our threads, or
-        // enabling the singlethreaded listeners (which is handled
-        // by opentk)
         Load();
         HandleMultithreaded(IsMultiThreaded);
+    }
+    
+    protected sealed override void OnUnload() {
+        base.OnUnload();
+        Unload();
+    }
+
+    public override void Close() {
+        JoinThreads();
+        Graphics?.Dispose();
+        base.Close();
     }
 
     public new Vector2i Size => FramebufferSize;
     public Vector2i WindowSize => base.Size;
 
-    // TODO: Reimplement
-    // public bool UseResizeRefreshing = true;
-
     protected sealed override void OnFramebufferResize(FramebufferResizeEventArgs e) {
         base.OnFramebufferResize(e);
         
         // Do not remove the lock, otherwise the graphics context will be disposed
-        // on the render thread as it reinstantiates the graphics context
-        // GL.Viewport(0, 0, e.Width, e.Height);
+        // on the render thread as it re-instantiates the graphics context
         lock (_renderLock)
             Graphics.Resize(e.Size);
         
         Element.ResizeSelf(e.Size);        
         Resize(e.Size);
+
+        if (IsMultiThreaded) {
+            lock (_renderLock) {
+                _threadedContext.MakeNoneCurrent();
+                Context.MakeCurrent();
+                
+                RenderFrame(Context);
+                
+                Context.MakeNoneCurrent();
+                _threadedContext.MakeCurrent();
+            }
+        }
     }
 
     protected sealed override void OnKeyDown(KeyboardKeyEventArgs e) {
@@ -254,10 +223,6 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
 
     protected sealed override void OnResize(ResizeEventArgs e) => base.OnResize(e);
 
-    /// <summary>
-    /// Singlethreaded render method
-    /// </summary>
-    /// <param name="args"></param>
     protected sealed override void OnRenderFrame(FrameEventArgs args) {
         if (IsMultiThreaded) return;
         
@@ -267,10 +232,6 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         RenderFrame(Context);
     }
 
-    /// <summary>
-    /// Singlethreaded update method
-    /// </summary>
-    /// <param name="args"></param>
     protected sealed override void OnUpdateFrame(FrameEventArgs args) {
         if (IsMultiThreaded) return;
 
