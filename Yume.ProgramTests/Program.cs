@@ -1,55 +1,104 @@
 ﻿#pragma warning disable CS0162
 
+using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 using Yume.Graphics.Elements;
-using Yume.Graphics.Windowing;
+using Yume.Input;
+using Yume.Windowing;
+using Window = Yume.Windowing.Window;
 
-using Keys = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
- 
 namespace Yume;
 
-public class InheritElement : Element {
-    public SKColor Color {
-        get => Paint.Color;
-        set => Paint.Color = value;
-    }
-
-    public SKPaint Paint = new() {
-        Color = SKColors.White
-    };
-    
-    public override void Load() {
-        base.Load();
-        Console.WriteLine("Elm: " + this.GetHashCode());
-    }
-
-    public override void Render(SKCanvas canvas) {
-        base.Render(canvas);
-        canvas.DrawRect(0, 0, Transform.Size.X, Transform.Size.Y, Paint);
-    }
-
-    public override void Update() {
-        base.Update();
-        Transform.Size = new(Transform.Size.X, (float)(Window.UpdateTime.Time % 3f / 3f * 50) + 50f);
-    }
-}
-
 public class InheritWindow : Window {
-    public override void Load() {
-        base.Load();
-        Element.AddChild(new InheritElement() {
-            Transform = {
-                Size = new(50)
-            }
-        });
-        
-        Console.WriteLine("Win: " + this.GetHashCode());
+    private List<Box> Boxes = new();
+    private FlexBox Flex = new();
+
+    private Vector2 pos = new(0);
+    private ClipMask mask = new();
+
+    protected override void Load() {
+        Flex.Direction = FlexDirection.Column;
+
+        Flex.Parent = mask;
+        mask.Parent = Element;
+
+        mask.Transform.Size = new(500);
+
+        Box box2 = new();
+        box2.Parent = mask;
+        box2.Transform.ScaleWidth = true;
+        box2.Transform.ScaleHeight = true;
+        box2.Color = SKColors.Red;
+        box2.ZIndex = -1000;
+
+        for (int i = 0; i < 10; i++) {
+            Box box = new();
+            box.Transform.Size = new(100, new Random().Next(100, 300));
+            box.Color = SKColors.Orange;
+            Boxes.Add(box);
+            Flex.AddChild(box);
+        }
     }
 
-    public override void Update() {
-        if (Element.Children[0] is InheritElement elm) {
-            elm.Color = SKColors.Orange;
+    protected override void Render() {
+        base.Render();
+
+        if (KeyboardState.IsKeyDown(Keys.R)) {
+            Boxes[0].Transform.WorldPosition -= new Vector2(0, 500 * (float)UpdateTime.DeltaTime);
         }
+
+        if (KeyboardState.IsKeyPressed(Keys.X)) {
+            Console.WriteLine("X");
+        }
+    }
+
+    protected override void Update() {
+        base.Update();
+
+
+        Flex.Transform.LocalPosition = Vector2.Lerp(
+            Flex.Transform.LocalPosition,
+            pos,
+            10f * (float)UpdateTime.DeltaTime);
+
+        if (KeyboardState.IsKeyDown(Keys.Down)) {
+            Boxes[0].Transform.Size += new Vector2(0, 200 * (float)UpdateTime.DeltaTime);
+        }
+
+        if (KeyboardState.IsKeyDown(Keys.Up)) {
+            Boxes[0].Transform.Size -= new Vector2(0, 200 * (float)UpdateTime.DeltaTime);
+        }
+
+        if (KeyboardState.IsKeyDown(Keys.Left)) {
+            Flex.Margin += 200 * (float)UpdateTime.DeltaTime;
+        }
+
+        if (KeyboardState.IsKeyDown(Keys.Right)) {
+            Flex.Margin -= 200 * (float)UpdateTime.DeltaTime;
+        }
+
+        if (Input.GetKeyDown(KeyCode.C)) {
+            Vector2 pos = mask.Transform.WorldPosition;
+            bool a = b;
+            b = !b;
+            Animations.Add(new Animation() {
+                Duration = 1,
+                LoopMode = AnimationLoopMode.Forward,
+                OnUpdate = (t) => {
+                    mask.Transform.WorldPosition = Vector2.Lerp(pos, (a ? new Vector2(100) : new Vector2(0)), (float)t);
+                }
+            }, "anim");
+            Console.WriteLine(a);
+        }
+    }
+
+    private bool b = false;
+
+    protected override void OnMouseWheel(MouseWheelEventArgs e) {
+        base.OnMouseWheel(e);
+        pos += new Vector2(0, e.OffsetY * 10);
     }
 }
 
@@ -59,7 +108,7 @@ public static class Program {
             UpdateFrequency = 144,
             RenderFrequency = 144
         };
-        
+
         window.Run();
     }
 }

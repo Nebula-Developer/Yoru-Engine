@@ -2,16 +2,19 @@
 
 using OpenTK.Mathematics;
 using SkiaSharp;
-using Yume.Graphics.Windowing;
 
 namespace Yume.Graphics.Elements;
 
 public class Transform {
+    private Element _element;
+
+    public Vector2 RotationOffset = new(0, 0);
+
     public Element Element {
         get => _element;
         set {
             if (_element != null && _element.Transform == this)
-                _element.Transform = new();
+                _element.Transform = new Transform();
             _element = value;
             if (_element != null && _element.Transform != this)
                 _element.Transform = this;
@@ -20,27 +23,25 @@ public class Transform {
         }
     }
 
-    private Element _element;
-
-    private void ExecuteChildren(Action<Element> action) => Element?.ForChildren(action);
+    private void ExecuteChildren(Action<Element> action) {
+        Element?.ForChildren(action);
+    }
 
     public void UpdateTransforms() {
         UpdateSize();
         UpdatePosition();
     }
 
-    public Vector2 RotationOffset = new(0, 0);
-
     public void ApplyToCanvas(SKCanvas canvas) {
-        Vector2 rotationPos = new(PivotPosition.X + (Size.X * RotationOffset.X),
-            PivotPosition.Y + (Size.Y * RotationOffset.Y));
+        Vector2 rotationPos = new(PivotPosition.X + Size.X * RotationOffset.X,
+            PivotPosition.Y + Size.Y * RotationOffset.Y);
         canvas.RotateDegrees(LocalRotation, rotationPos.X, rotationPos.Y);
         canvas.Translate(PivotPosition.X, PivotPosition.Y);
     }
 
     #region Size
 
-    private Vector2 ParentSize => (Element?.Parent?.Transform.Size ?? Vector2.Zero);
+    private Vector2 ParentSize => Element?.Parent?.Transform.Size ?? Vector2.Zero;
     private Vector2 ParentScaleSize => ParentSize * ParentScale;
 
     public Vector2 ParentScale {
@@ -55,12 +56,12 @@ public class Transform {
 
     public bool ScaleWidth {
         get => ParentScale.X != 0;
-        set => ParentScale = new(value ? 1 : 0, ParentScale.Y);
+        set => ParentScale = new Vector2(value ? 1 : 0, ParentScale.Y);
     }
 
     public bool ScaleHeight {
         get => ParentScale.Y != 0;
-        set => ParentScale = new(ParentScale.X, value ? 1 : 0);
+        set => ParentScale = new Vector2(ParentScale.X, value ? 1 : 0);
     }
 
     public Vector2 LocalSizeOffset {
@@ -86,10 +87,13 @@ public class Transform {
     }
 
     private Vector2 _size = Vector2.Zero;
+    
+    public Action<Vector2> ProcessSizeChanged;
 
     public void UpdateSize() {
         if (ParentScale.X != 0) _size.X = ParentScaleSize.X + _localSizeOffset.X;
         if (ParentScale.Y != 0) _size.Y = ParentScaleSize.Y + _localSizeOffset.Y;
+        ProcessSizeChanged?.Invoke(_size);
         ExecuteChildren(child => child.Transform.UpdateSize());
     }
 
@@ -97,7 +101,7 @@ public class Transform {
 
     #region Position
 
-    private Vector2 ParentPosition => (Element?.Parent?.Transform.WorldPosition ?? Vector2.Zero);
+    private Vector2 ParentPosition => Element?.Parent?.Transform.WorldPosition ?? Vector2.Zero;
 
     public Vector2 LocalPosition {
         get => _localPosition;
@@ -134,7 +138,7 @@ public class Transform {
         set {
             _worldPosition = value;
             LocalPosition = _worldPosition - ParentPosition -
-                            ((ParentSize * AnchorPosition) - (Size * OffsetPosition));
+                            (ParentSize * AnchorPosition - Size * OffsetPosition);
         }
     }
 
@@ -143,16 +147,19 @@ public class Transform {
     public Vector2 PivotPosition {
         get => _pivotPosition;
         set {
-            LocalPosition = value - ((ParentSize * AnchorPosition) - (Size * OffsetPosition));
+            LocalPosition = value - (ParentSize * AnchorPosition - Size * OffsetPosition);
             UpdatePosition();
         }
     }
 
     private Vector2 _pivotPosition = Vector2.Zero;
+    
+    public Action<Vector2> ProcessPositionChanged;
 
     public void UpdatePosition() {
-        _pivotPosition = (ParentSize * AnchorPosition) - (Size * OffsetPosition) + LocalPosition;
+        _pivotPosition = ParentSize * AnchorPosition - Size * OffsetPosition + LocalPosition;
         _worldPosition = ParentPosition + _pivotPosition;
+        ProcessPositionChanged?.Invoke(_worldPosition);
         ExecuteChildren(child => child.Transform.UpdatePosition());
     }
 
@@ -160,7 +167,7 @@ public class Transform {
 
     #region Rotation
 
-    private float ParentRotation => (Element?.Parent?.Transform.WorldRotation ?? 0);
+    private float ParentRotation => Element?.Parent?.Transform.WorldRotation ?? 0;
 
     public float LocalRotation {
         get => _localRotation;
@@ -170,7 +177,7 @@ public class Transform {
         }
     }
 
-    private float _localRotation = 0;
+    private float _localRotation;
 
     public float WorldRotation {
         get => _worldRotation;
@@ -180,11 +187,15 @@ public class Transform {
         }
     }
 
-    private float _worldRotation = 0;
+    private float _worldRotation;
+    
+    public Action<float> ProcessRotationChanged;
 
     public void UpdateRotation() {
         _worldRotation = ParentRotation + _localRotation;
+        ProcessRotationChanged?.Invoke(_worldRotation);
         ExecuteChildren(child => child.Transform.UpdateRotation());
     }
+
     #endregion
 }

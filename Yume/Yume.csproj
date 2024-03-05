@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <RootNamespace>Yume.Graphics</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="opentk" Version="4.8.2"/>
+        <PackageReference Include="skiasharp" Version="2.88.7"/>
+        <PackageReference Include="Topten.RichTextKit" Version="0.4.166"/>
+    </ItemGroup>
+
+</Project>

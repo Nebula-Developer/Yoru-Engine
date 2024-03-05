@@ -1,45 +1,61 @@
 #nullable disable
 
-using OpenTK.Graphics.OpenGL4;
+using System.Diagnostics;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using SkiaSharp;
-using System.Diagnostics;
 using Yume.Graphics.Elements;
+using Yume.Graphics;
+using Yume.Input;
 
-namespace Yume.Graphics.Windowing;
+namespace Yume.Windowing;
 
-public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
+public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowSettings {
     Flags = ContextFlags.ForwardCompatible,
-    Title = "Graphics Window"
+    Title = "Yume Window"
 }) {
-    public GraphicsContext Graphics;
+    private readonly object _renderLock = new();
+    private RootElement _element;
+    private bool _isMultithreaded = true;
+    private float _renderFrequency = 60;
 
+    private GLFWGraphicsContext _threadedContext;
+    private float _updateFrequency = 60;
+
+    private Thread _renderThread;
+    private Stopwatch _renderTimer;
+
+    private Thread _updateThread;
+    private Stopwatch _updateTimer;
+
+    public GraphicsContext Graphics;
+    public AnimationContext Animations;
+    public InputContext Input;
+    
     public new TimeContext RenderTime;
     public new TimeContext UpdateTime;
 
     /// <summary>
-    /// SkiaSharp canvas used for drawing within the render thread
+    ///     SkiaSharp canvas used for drawing within the render thread
     /// </summary>
     public SKCanvas Canvas => Graphics.Surface.Canvas;
 
     /// <summary>
-    /// The root element that holds all active elements
+    ///     The root element that holds all active elements
     /// </summary>
     protected RootElement Element {
         get {
             if (_element == null)
-                _element = new(this);
+                _element = new RootElement(this);
             return _element;
         }
     }
-    private RootElement _element;
 
     /// <summary>
-    /// If singlethreaded, this is the primary update/render frequency
-    /// <br/>
-    /// If multithreaded, this targets only the update thread
+    ///     If singlethreaded, this is the primary update/render frequency
+    ///     <br />
+    ///     If multithreaded, this targets only the update thread
     /// </summary>
     public new float UpdateFrequency {
         get => _updateFrequency;
@@ -48,30 +64,30 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
             base.UpdateFrequency = _updateFrequency;
         }
     }
-    private float _updateFrequency = 60;
 
     /// <summary>
-    /// Targets the render thread frequency, only if multithreaded
+    ///     Targets the render thread frequency, only if multithreaded
     /// </summary>
     public new float RenderFrequency {
         get => _renderFrequency;
         set => _renderFrequency = Math.Max(value, 1);
     }
-    private float _renderFrequency = 60;
 
-    private GLFWGraphicsContext _threadedContext;
-    private readonly object _renderLock = new();
+    public new bool IsMultiThreaded {
+        get => _isMultithreaded;
+        set {
+            if (value == _isMultithreaded)
+                return;
 
-    private Stopwatch _updateTimer;
-    private Stopwatch _renderTimer;
-
-    private Thread _renderThread;
-    private Thread _updateThread;
+            _isMultithreaded = value;
+            HandleMultithreaded(value);
+        }
+    }
 
     private void MakeGraphicsInstance() {
         lock (_renderLock) {
             Graphics?.Dispose();
-            Graphics = new(this);
+            Graphics = new GraphicsContext(this);
             Graphics.Load();
         }
     }
@@ -93,7 +109,7 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         _renderTimer.Restart();
         MakeGraphicsInstance();
 
-        while (IsMultiThreaded) { 
+        while (IsMultiThreaded) {
             RenderTime.Update((float)_renderTimer.Elapsed.TotalSeconds);
             _renderTimer.Restart();
 
@@ -108,17 +124,19 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
         while (IsMultiThreaded) {
             UpdateTime.Update((float)_updateTimer.Elapsed.TotalSeconds);
             _updateTimer.Restart();
-
+            
+            Animations.Update();
             Element.UpdateSelf();
             Update();
             
+            Input.Update();
             Thread.Sleep((int)(1000 / UpdateFrequency));
         }
     }
 
     private void SpawnThreads() {
-        _renderThread = new(RenderThread);
-        _updateThread = new(UpdateThread);
+        _renderThread = new Thread(RenderThread);
+        _updateThread = new Thread(UpdateThread);
 
         _renderThread.Start();
         _updateThread.Start();
@@ -131,53 +149,44 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
 
     private void HandleMultithreaded(bool threaded) {
         if (threaded) {
-            this.Context.MakeNoneCurrent();
+            Context.MakeNoneCurrent();
             SpawnThreads();
-        } else {
+        }
+        else {
             JoinThreads();
             _threadedContext?.MakeNoneCurrent();
-            this.Context.MakeCurrent();
+            Context.MakeCurrent();
             MakeGraphicsInstance();
         }
     }
 
-    public new bool IsMultiThreaded {
-        get => _isMultithreaded;
-        set {
-            if (value == _isMultithreaded)
-                return;
-
-            _isMultithreaded = value;
-            HandleMultithreaded(value);
-        }
-    }
-    private bool _isMultithreaded = true;
-
-    public virtual void Render() { }
-    public virtual void Update() { }
-    public new virtual void Load() { }
-    public new virtual void Unload() { }
-    public new virtual void Resize(Vector2i size) { }
-    public new virtual void KeyDown(KeyboardKeyEventArgs e) { }
-    public new virtual void KeyUp(KeyboardKeyEventArgs e) { }
+    protected virtual void Render() { }
+    protected virtual void Update() { }
+    protected new virtual void Load() { }
+    protected new virtual void Unload() { }
+    protected new virtual void Resize(Vector2i size) { }
 
     #region Sealed overrides
-    protected unsafe sealed override void OnLoad() {
+
+    protected sealed override unsafe void OnLoad() {
         base.OnLoad();
         base.UpdateFrequency = _updateFrequency;
 
-        RenderTime = new(this);
-        UpdateTime = new(this);
+        Animations = new(this);
+        Input = new(this);
 
-        _updateTimer = new();
-        _renderTimer = new();
+        RenderTime = new TimeContext(this);
+        UpdateTime = new TimeContext(this);
 
-        _threadedContext = new GLFWGraphicsContext(this.WindowPtr);
+        _updateTimer = new Stopwatch();
+        _renderTimer = new Stopwatch();
+
+        _threadedContext = new GLFWGraphicsContext(WindowPtr);
 
         Load();
         HandleMultithreaded(IsMultiThreaded);
     }
-    
+
     protected sealed override void OnUnload() {
         base.OnUnload();
         Unload();
@@ -194,41 +203,37 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
 
     protected sealed override void OnFramebufferResize(FramebufferResizeEventArgs e) {
         base.OnFramebufferResize(e);
-        
+
         // Do not remove the lock, otherwise the graphics context will be disposed
         // on the render thread as it re-instantiates the graphics context
-        lock (_renderLock)
+        lock (_renderLock) {
             Graphics.Resize(e.Size);
-        
-        Element.ResizeSelf(e.Size);        
-        Resize(e.Size);
-
-        if (IsMultiThreaded) {
-            lock (_renderLock) {
-                _threadedContext.MakeNoneCurrent();
-                Context.MakeCurrent();
-                
-                RenderFrame(Context);
-                
-                Context.MakeNoneCurrent();
-                _threadedContext.MakeCurrent();
-            }
         }
+
+        Element.ResizeSelf(e.Size);
+        Resize(e.Size);
     }
 
     protected sealed override void OnKeyDown(KeyboardKeyEventArgs e) {
         base.OnKeyDown(e);
-        KeyDown(e);
+        Input.KeyDown(e.Key);
     }
 
-    protected sealed override void OnResize(ResizeEventArgs e) => base.OnResize(e);
+    protected override void OnKeyUp(KeyboardKeyEventArgs e) {
+        Input.KeyUp(e.Key);
+        base.OnKeyUp(e);
+    }
+
+    protected sealed override void OnResize(ResizeEventArgs e) {
+        base.OnResize(e);
+    }
 
     protected sealed override void OnRenderFrame(FrameEventArgs args) {
         if (IsMultiThreaded) return;
-        
+
         base.OnRenderFrame(args);
         RenderTime.Update((float)args.Time);
-        
+
         RenderFrame(Context);
     }
 
@@ -237,8 +242,12 @@ public partial class Window() : GameWindow(GameWindowSettings.Default, new() {
 
         base.OnUpdateFrame(args);
         UpdateTime.Update((float)args.Time);
+        
+        Animations.Update();
         Element.UpdateSelf();
         Update();
+        Input.Update();
     }
+
     #endregion
 }
