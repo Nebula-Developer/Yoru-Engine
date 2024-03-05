@@ -87,7 +87,7 @@ public class Transform {
     }
 
     private Vector2 _size = Vector2.Zero;
-    
+
     public Action<Vector2> ProcessSizeChanged;
 
     public void UpdateSize() {
@@ -153,7 +153,7 @@ public class Transform {
     }
 
     private Vector2 _pivotPosition = Vector2.Zero;
-    
+
     public Action<Vector2> ProcessPositionChanged;
 
     public void UpdatePosition() {
@@ -188,7 +188,7 @@ public class Transform {
     }
 
     private float _worldRotation;
-    
+
     public Action<float> ProcessRotationChanged;
 
     public void UpdateRotation() {

@@ -3,7 +3,6 @@
 using OpenTK.Mathematics;
 using SkiaSharp;
 using Yume.Windowing;
-using Yume.Graphics;
 
 namespace Yume.Graphics.Elements;
 
@@ -133,9 +132,10 @@ public class Element {
     protected virtual void RenderChildren(SKCanvas canvas) {
         ForChildren(child => child.RenderSelf(canvas));
     }
-    
-    protected virtual bool ShouldRender() =>
-        !Window.Canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
+
+    protected virtual bool ShouldRender() {
+        return !Window.Canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
+    }
 
     public void RenderSelf(SKCanvas canvas) {
         if (Window == null) return;
@@ -154,7 +154,7 @@ public class Element {
         Update();
         ForChildren(child => child.UpdateSelf());
     }
-    
+
     public void ResizeSelf(Vector2 size) {
         Resize(size);
         ForChildren(child => child.ResizeSelf(size));

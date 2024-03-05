@@ -20,7 +20,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <ProjectReference Include="..\Yume\Yume.csproj" />
+        <ProjectReference Include="..\Yume\Yume.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -1,8 +1,9 @@
 // ReSharper disable UnusedMember.Global
+
 namespace Yume.Input;
 
 /// <summary>
-/// OpenTKs key enumerator 
+///     OpenTKs key enumerator
 /// </summary>
 public enum KeyCode {
     /// <summary>An unknown key.</summary>

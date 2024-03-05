@@ -8,6 +8,14 @@ public enum FlexDirection {
 }
 
 public class FlexBox : Element {
+    private FlexDirection _direction = FlexDirection.Column;
+
+    private float _margin;
+
+    private bool _updating;
+
+    public bool ResetAxis = true;
+
     public float Margin {
         get => _margin;
         set {
@@ -15,8 +23,6 @@ public class FlexBox : Element {
             UpdateFlex();
         }
     }
-
-    private float _margin = 0;
 
     public FlexDirection Direction {
         get => _direction;
@@ -26,19 +32,13 @@ public class FlexBox : Element {
         }
     }
 
-    private FlexDirection _direction = FlexDirection.Column;
-
-    public bool ResetAxis = true;
-
-    private bool _updating = false;
-
     public void UpdateFlex() {
         _updating = true;
 
         float p = 0;
-        for (int i = 0; i < Children.Count; i++) {
-            Element child = Children[i];
-            Vector2 reset = ResetAxis ? Vector2.Zero : child.Transform.LocalPosition;
+        for (var i = 0; i < Children.Count; i++) {
+            var child = Children[i];
+            var reset = ResetAxis ? Vector2.Zero : child.Transform.LocalPosition;
 
             child.Transform.LocalPosition = new Vector2(
                 Direction == FlexDirection.Row ? p : reset.X,

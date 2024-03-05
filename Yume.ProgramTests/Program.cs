@@ -12,11 +12,12 @@ using Window = Yume.Windowing.Window;
 namespace Yume;
 
 public class InheritWindow : Window {
-    private List<Box> Boxes = new();
-    private FlexBox Flex = new();
+    private bool b;
+    private readonly List<Box> Boxes = new();
+    private readonly FlexBox Flex = new();
+    private readonly ClipMask mask = new();
 
     private Vector2 pos = new(0);
-    private ClipMask mask = new();
 
     protected override void Load() {
         Flex.Direction = FlexDirection.Column;
@@ -24,7 +25,7 @@ public class InheritWindow : Window {
         Flex.Parent = mask;
         mask.Parent = Element;
 
-        mask.Transform.Size = new(500);
+        mask.Transform.Size = new Vector2(500);
 
         Box box2 = new();
         box2.Parent = mask;
@@ -33,9 +34,9 @@ public class InheritWindow : Window {
         box2.Color = SKColors.Red;
         box2.ZIndex = -1000;
 
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
             Box box = new();
-            box.Transform.Size = new(100, new Random().Next(100, 300));
+            box.Transform.Size = new Vector2(100, new Random().Next(100, 300));
             box.Color = SKColors.Orange;
             Boxes.Add(box);
             Flex.AddChild(box);
@@ -45,13 +46,10 @@ public class InheritWindow : Window {
     protected override void Render() {
         base.Render();
 
-        if (KeyboardState.IsKeyDown(Keys.R)) {
+        if (KeyboardState.IsKeyDown(Keys.R))
             Boxes[0].Transform.WorldPosition -= new Vector2(0, 500 * (float)UpdateTime.DeltaTime);
-        }
 
-        if (KeyboardState.IsKeyPressed(Keys.X)) {
-            Console.WriteLine("X");
-        }
+        if (KeyboardState.IsKeyPressed(Keys.X)) Console.WriteLine("X");
     }
 
     protected override void Update() {
@@ -63,38 +61,30 @@ public class InheritWindow : Window {
             pos,
             10f * (float)UpdateTime.DeltaTime);
 
-        if (KeyboardState.IsKeyDown(Keys.Down)) {
+        if (KeyboardState.IsKeyDown(Keys.Down))
             Boxes[0].Transform.Size += new Vector2(0, 200 * (float)UpdateTime.DeltaTime);
-        }
 
-        if (KeyboardState.IsKeyDown(Keys.Up)) {
+        if (KeyboardState.IsKeyDown(Keys.Up))
             Boxes[0].Transform.Size -= new Vector2(0, 200 * (float)UpdateTime.DeltaTime);
-        }
 
-        if (KeyboardState.IsKeyDown(Keys.Left)) {
-            Flex.Margin += 200 * (float)UpdateTime.DeltaTime;
-        }
+        if (KeyboardState.IsKeyDown(Keys.Left)) Flex.Margin += 200 * (float)UpdateTime.DeltaTime;
 
-        if (KeyboardState.IsKeyDown(Keys.Right)) {
-            Flex.Margin -= 200 * (float)UpdateTime.DeltaTime;
-        }
+        if (KeyboardState.IsKeyDown(Keys.Right)) Flex.Margin -= 200 * (float)UpdateTime.DeltaTime;
 
         if (Input.GetKeyDown(KeyCode.C)) {
-            Vector2 pos = mask.Transform.WorldPosition;
-            bool a = b;
+            var pos = mask.Transform.WorldPosition;
+            var a = b;
             b = !b;
-            Animations.Add(new Animation() {
+            Animations.Add(new Animation {
                 Duration = 1,
                 LoopMode = AnimationLoopMode.Forward,
-                OnUpdate = (t) => {
-                    mask.Transform.WorldPosition = Vector2.Lerp(pos, (a ? new Vector2(100) : new Vector2(0)), (float)t);
+                OnUpdate = t => {
+                    mask.Transform.WorldPosition = Vector2.Lerp(pos, a ? new Vector2(100) : new Vector2(0), (float)t);
                 }
             }, "anim");
             Console.WriteLine(a);
         }
     }
-
-    private bool b = false;
 
     protected override void OnMouseWheel(MouseWheelEventArgs e) {
         base.OnMouseWheel(e);

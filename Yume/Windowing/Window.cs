@@ -5,8 +5,8 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using SkiaSharp;
-using Yume.Graphics.Elements;
 using Yume.Graphics;
+using Yume.Graphics.Elements;
 using Yume.Input;
 
 namespace Yume.Windowing;
@@ -20,19 +20,19 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
     private bool _isMultithreaded = true;
     private float _renderFrequency = 60;
 
-    private GLFWGraphicsContext _threadedContext;
-    private float _updateFrequency = 60;
-
     private Thread _renderThread;
     private Stopwatch _renderTimer;
 
+    private GLFWGraphicsContext _threadedContext;
+    private float _updateFrequency = 60;
+
     private Thread _updateThread;
     private Stopwatch _updateTimer;
+    public AnimationContext Animations;
 
     public GraphicsContext Graphics;
-    public AnimationContext Animations;
     public InputContext Input;
-    
+
     public new TimeContext RenderTime;
     public new TimeContext UpdateTime;
 
@@ -124,11 +124,11 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
         while (IsMultiThreaded) {
             UpdateTime.Update((float)_updateTimer.Elapsed.TotalSeconds);
             _updateTimer.Restart();
-            
+
             Animations.Update();
             Element.UpdateSelf();
             Update();
-            
+
             Input.Update();
             Thread.Sleep((int)(1000 / UpdateFrequency));
         }
@@ -172,8 +172,8 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
         base.OnLoad();
         base.UpdateFrequency = _updateFrequency;
 
-        Animations = new(this);
-        Input = new(this);
+        Animations = new AnimationContext(this);
+        Input = new InputContext(this);
 
         RenderTime = new TimeContext(this);
         UpdateTime = new TimeContext(this);
@@ -242,7 +242,7 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
 
         base.OnUpdateFrame(args);
         UpdateTime.Update((float)args.Time);
-        
+
         Animations.Update();
         Element.UpdateSelf();
         Update();

@@ -13,22 +13,22 @@ public enum AnimationLoopMode {
 }
 
 public class Animation {
-    public double Duration = 1f;
-    public double Delay = 0;
+    public double Delay;
     public AnimationDirection Direction = AnimationDirection.Forward;
-    public AnimationLoopMode LoopMode = AnimationLoopMode.None;
-    public double Progress = 0;
+    public double Duration = 1f;
     public bool IsPlaying = true;
+    public AnimationLoopMode LoopMode = AnimationLoopMode.None;
+    public Action OnComplete;
 
     public Action<double> OnUpdate;
-    public Action OnComplete;
+    public double Progress;
 
     public void Update(double dt) {
         if (Delay > 0) Delay -= dt;
         else Delay = 0;
 
         if (!IsPlaying) return;
-        
+
         if (Direction == AnimationDirection.Forward) {
             Progress += dt / Duration;
             if (Progress >= 1) {
@@ -36,7 +36,8 @@ public class Animation {
                 IsPlaying = false;
                 OnComplete?.Invoke();
             }
-        } else {
+        }
+        else {
             Progress -= dt / Duration;
             if (Progress <= 0) {
                 Progress = 0;
@@ -44,7 +45,7 @@ public class Animation {
                 OnComplete?.Invoke();
             }
         }
-        
+
         OnUpdate?.Invoke(Progress);
     }
 
