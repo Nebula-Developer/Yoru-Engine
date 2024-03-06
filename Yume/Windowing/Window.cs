@@ -116,6 +116,8 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
             RenderFrame(_threadedContext);
             Thread.Sleep((int)(1000 / RenderFrequency));
         }
+
+        _threadedContext!.MakeNoneCurrent();
     }
 
     private void UpdateThread() {
@@ -151,11 +153,11 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
         if (threaded) {
             Context.MakeNoneCurrent();
             SpawnThreads();
-        }
-        else {
+        } else {
             JoinThreads();
-            _threadedContext?.MakeNoneCurrent();
+            Console.WriteLine(Context.IsCurrent + ", " + _threadedContext.IsCurrent);
             Context.MakeCurrent();
+            Console.WriteLine(Context.IsCurrent + ", " + _threadedContext.IsCurrent);
             MakeGraphicsInstance();
         }
     }
