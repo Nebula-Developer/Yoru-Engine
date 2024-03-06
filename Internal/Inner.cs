@@ -1,30 +1,39 @@
 ﻿// Used to test dynamic loading of elements from separate assemblies
 
 using SkiaSharp;
+using Yume.Graphics.Elements;
+using Yume.Windowing;
 
 namespace Internal;
 
 public class Inner : Element {
-    public override void Load() {
+    protected override void Load() {
         base.Load();
+        Cull = false;
     }
 
-    public override void Render(SKCanvas canvas) {
-        base.Render(canvas);
-        float percent = ((Window.RenderTime.Time % 10) / 10);
+    protected override void Render(SKCanvas canvas) {
+        double percent = ((Window.RenderTime.Time % 10) / 10);
         canvas.Clear(new SKColor((byte)(percent * 255), 100, 100));
     }
 }
 
 public static class Static {
-    static int t = 0;
-    public static void Render(SKCanvas canvas) {
-        canvas.Clear(SKColors.Orange);
-        canvas.DrawText("T=" + t, 10, 10, new SKPaint() {
-            Color = SKColors.Black,
-            TextSize = 20
-        });
+    static double _t = 0;
+    
+    public static Window? _window;
+    public static DateTime _begin;
 
-        t++;
+    private static SKPaint _textPaint = new SKPaint {
+        Color = SKColors.White,
+        TextSize = 20
+    };
+    
+    public static void Render(SKCanvas canvas) {
+        canvas.DrawText("INTERNAL T = " + Math.Round(_t, 1), 10, 30, _textPaint);
+        canvas.DrawText("CONSTANT T = " + Math.Round((DateTime.Now - _begin).TotalSeconds, 1), 10, 60, _textPaint);
+
+        if (_t == 0) _begin = DateTime.Now;
+        _t += _window!.RenderTime.DeltaTime;
     }
 }

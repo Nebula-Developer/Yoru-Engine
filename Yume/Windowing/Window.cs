@@ -116,6 +116,8 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
             RenderFrame(_threadedContext);
             Thread.Sleep((int)(1000 / RenderFrequency));
         }
+        
+        _threadedContext.MakeNoneCurrent();
     }
 
     private void UpdateThread() {
@@ -152,12 +154,7 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
             Context.MakeNoneCurrent();
             SpawnThreads();
         }
-        else {
-            JoinThreads();
-            _threadedContext?.MakeNoneCurrent();
-            Context.MakeCurrent();
-            MakeGraphicsInstance();
-        }
+        else JoinThreads();
     }
 
     protected virtual void Render() { }
@@ -231,8 +228,15 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
     protected sealed override void OnRenderFrame(FrameEventArgs args) {
         if (IsMultiThreaded) return;
 
+        if (!Context.IsCurrent || Canvas == null) {
+            Context.MakeCurrent();
+            MakeGraphicsInstance();
+        }
+
         base.OnRenderFrame(args);
-        RenderTime.Update((float)args.Time);
+        
+        RenderTime.Update(_renderTimer.ElapsedMilliseconds / 1000f);
+        _renderTimer.Restart();
 
         RenderFrame(Context);
     }
@@ -241,7 +245,9 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
         if (IsMultiThreaded) return;
 
         base.OnUpdateFrame(args);
-        UpdateTime.Update((float)args.Time);
+        
+        UpdateTime.Update(_updateTimer.ElapsedMilliseconds / 1000f);
+        _updateTimer.Restart();
 
         Animations.Update();
         Element.UpdateSelf();

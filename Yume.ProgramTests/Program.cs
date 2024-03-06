@@ -1,94 +1,56 @@
 ﻿#pragma warning disable CS0162
 
-using OpenTK.Mathematics;
+using System.Reflection;
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
 using Yume.Graphics.Elements;
 using Yume.Input;
-using Yume.Windowing;
 using Window = Yume.Windowing.Window;
 
 namespace Yume;
 
 public class InheritWindow : Window {
-    private bool b;
-    private readonly List<Box> Boxes = new();
-    private readonly FlexBox Flex = new();
-    private readonly ClipMask mask = new();
+    public static readonly string InternalDll = Path.GetFullPath("../../../../Internal/bin/Debug/net8.0/Internal.dll");
 
-    private Vector2 pos = new(0);
+    private Action<SKCanvas>? _internalRenderMethod;
 
     protected override void Load() {
-        Flex.Direction = FlexDirection.Column;
+        base.Load();
 
-        Flex.Parent = mask;
-        mask.Parent = Element;
+        Console.WriteLine("Loading Internal.dll from " + InternalDll);
 
-        mask.Transform.Size = new Vector2(500);
+        Assembly internalAssembly = Assembly.LoadFrom(InternalDll);
+        
+        // set Internal.Static.Window to this window
+        internalAssembly.GetType("Internal.Static")?.GetField("_window")?.SetValue(null, this);
 
-        Box box2 = new();
-        box2.Parent = mask;
-        box2.Transform.ScaleWidth = true;
-        box2.Transform.ScaleHeight = true;
-        box2.Color = SKColors.Red;
-        box2.ZIndex = -1000;
-
-        for (var i = 0; i < 10; i++) {
-            Box box = new();
-            box.Transform.Size = new Vector2(100, new Random().Next(100, 300));
-            box.Color = SKColors.Orange;
-            Boxes.Add(box);
-            Flex.AddChild(box);
+        MethodInfo? staticRenderMethod = internalAssembly.GetType("Internal.Static")?.GetMethod("Render");
+        if (staticRenderMethod != null) {
+            _internalRenderMethod =
+                (Action<SKCanvas>)Delegate.CreateDelegate(typeof(Action<SKCanvas>), null, staticRenderMethod);
+        }
+        
+        // get the Internal.Inner class (which inherits from Element)
+        Type? innerType = internalAssembly.GetType("Internal.Inner");
+        if (innerType != null) {
+            // create an instance of the Inner class
+            dynamic inner = (dynamic)Activator.CreateInstance(innerType)!;
+            inner.Parent = Element;
         }
     }
 
     protected override void Render() {
         base.Render();
-
-        if (KeyboardState.IsKeyDown(Keys.R))
-            Boxes[0].Transform.WorldPosition -= new Vector2(0, 500 * (float)UpdateTime.DeltaTime);
-
-        if (KeyboardState.IsKeyPressed(Keys.X)) Console.WriteLine("X");
+        _internalRenderMethod!(Canvas);
     }
-
+    
     protected override void Update() {
         base.Update();
-
-
-        Flex.Transform.LocalPosition = Vector2.Lerp(
-            Flex.Transform.LocalPosition,
-            pos,
-            10f * (float)UpdateTime.DeltaTime);
-
-        if (KeyboardState.IsKeyDown(Keys.Down))
-            Boxes[0].Transform.Size += new Vector2(0, 200 * (float)UpdateTime.DeltaTime);
-
-        if (KeyboardState.IsKeyDown(Keys.Up))
-            Boxes[0].Transform.Size -= new Vector2(0, 200 * (float)UpdateTime.DeltaTime);
-
-        if (KeyboardState.IsKeyDown(Keys.Left)) Flex.Margin += 200 * (float)UpdateTime.DeltaTime;
-
-        if (KeyboardState.IsKeyDown(Keys.Right)) Flex.Margin -= 200 * (float)UpdateTime.DeltaTime;
-
-        if (Input.GetKeyDown(KeyCode.C)) {
-            var pos = mask.Transform.WorldPosition;
-            var a = b;
-            b = !b;
-            Animations.Add(new Animation {
-                Duration = 1,
-                LoopMode = AnimationLoopMode.Forward,
-                OnUpdate = t => {
-                    mask.Transform.WorldPosition = Vector2.Lerp(pos, a ? new Vector2(100) : new Vector2(0), (float)t);
-                }
-            }, "anim");
-            Console.WriteLine(a);
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            IsMultiThreaded = !IsMultiThreaded;
+            Console.WriteLine(IsMultiThreaded);
         }
-    }
-
-    protected override void OnMouseWheel(MouseWheelEventArgs e) {
-        base.OnMouseWheel(e);
-        pos += new Vector2(0, e.OffsetY * 10);
+        if (Input.GetKeyDown(KeyCode.S)) Console.WriteLine("A");
     }
 }
 
