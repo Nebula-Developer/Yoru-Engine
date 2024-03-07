@@ -47,6 +47,9 @@ public class InheritWindow : Window {
     protected override void Update() {
         base.Update();
         if (Input.GetKeyDown(KeyCode.Space)) {
+            Console.WriteLine("Before: " + IsMultiThreaded);
+            IsMultiThreaded = !IsMultiThreaded;
+            Console.WriteLine(IsMultiThreaded);
             IsMultiThreaded = !IsMultiThreaded;
             Console.WriteLine(IsMultiThreaded);
         }

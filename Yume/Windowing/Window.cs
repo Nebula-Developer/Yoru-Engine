@@ -78,7 +78,7 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
         set {
             if (value == _isMultithreaded)
                 return;
-
+            
             _isMultithreaded = value;
             HandleMultithreaded(value);
         }
@@ -104,12 +104,16 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
         }
     }
 
+    private int _threadCountLock = 0;
+
     private void RenderThread() {
         _threadedContext.MakeCurrent();
         _renderTimer.Restart();
         MakeGraphicsInstance();
-
-        while (IsMultiThreaded) {
+        
+        int threadCountLock = _threadCountLock;
+        
+        while (IsMultiThreaded && threadCountLock == _threadCountLock) {
             RenderTime.Update((float)_renderTimer.Elapsed.TotalSeconds);
             _renderTimer.Restart();
 
@@ -122,8 +126,10 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
 
     private void UpdateThread() {
         _updateTimer.Restart();
+        
+        int threadCountLock = _threadCountLock;
 
-        while (IsMultiThreaded) {
+        while (IsMultiThreaded && threadCountLock == _threadCountLock) {
             UpdateTime.Update((float)_updateTimer.Elapsed.TotalSeconds);
             _updateTimer.Restart();
 
@@ -150,11 +156,17 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
     }
 
     private void HandleMultithreaded(bool threaded) {
+        Input.Update();
+        
         if (threaded) {
+            Console.WriteLine("A");
+            _threadCountLock++;
+            JoinThreads();
+            Console.WriteLine("B");
+            
             Context.MakeNoneCurrent();
             SpawnThreads();
         }
-        else JoinThreads();
     }
 
     protected virtual void Render() { }
@@ -229,6 +241,8 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
         if (IsMultiThreaded) return;
 
         if (!Context.IsCurrent || Canvas == null) {
+            _threadCountLock++;
+            JoinThreads();
             Context.MakeCurrent();
             MakeGraphicsInstance();
         }
@@ -252,6 +266,7 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
         Animations.Update();
         Element.UpdateSelf();
         Update();
+        
         Input.Update();
     }
 
