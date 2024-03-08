@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using OpenTK.Mathematics;
 using SkiaSharp;
 using Yoru.Graphics.Elements;
 using Yoru.Input;
@@ -14,13 +15,13 @@ public class ProgramTestWindow : Window {
     protected override void Load() {
         base.Load();
         _box.Color = SKColors.Green;
-        _box.Transform.Size = new(100);
+        _box.Transform.Size = new Vector2(100);
         _box.Transform.ScaleWidth = true;
 
-        _updateText.Transform.AnchorPosition = new(0.5f);
-        _frequencyText.Transform.AnchorPosition = new(0.5f);
-        _updateText.Transform.OffsetPosition = new(1, 0.5f);
-        _frequencyText.Transform.OffsetPosition = new(0, 0.5f);
+        _updateText.Transform.AnchorPosition = new Vector2(0.5f);
+        _frequencyText.Transform.AnchorPosition = new Vector2(0.5f);
+        _updateText.Transform.OffsetPosition = new Vector2(1, 0.5f);
+        _frequencyText.Transform.OffsetPosition = new Vector2(0, 0.5f);
         
         _updateText.Color = SKColors.Red;
         _frequencyText.Color = SKColors.Orange;

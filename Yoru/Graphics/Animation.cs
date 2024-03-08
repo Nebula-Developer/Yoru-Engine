@@ -1,17 +1,17 @@
-namespace Yoru.Windowing;
+namespace Yoru.Graphics;
 
 public class Animation {
-    public double Delay;
-    public AnimationDirection Direction = AnimationDirection.Forward;
     public double Duration = 1f;
+    public double Delay;
+    public double Progress;
+    public bool IsPlaying = true;
+    
+    public AnimationDirection Direction = AnimationDirection.Forward;
+    public AnimationLoopMode LoopMode = AnimationLoopMode.None;
     public Func<double, double>? Easing;
 
-    public bool IsPlaying = true;
-    public AnimationLoopMode LoopMode = AnimationLoopMode.None;
-    public Action OnComplete;
-
-    public Action<double> OnUpdate;
-    public double Progress;
+    public Action? OnComplete;
+    public Action<double>? OnUpdate;
 
     public void Update(double dt) {
         if (Delay > 0) {

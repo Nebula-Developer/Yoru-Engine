@@ -1,7 +1,9 @@
 ﻿// Used to test dynamic loading of elements from separate assemblies
 
 
+using System;
 using SkiaSharp;
+using Yoru.Graphics;
 using Yoru.Graphics.Elements;
 using Yoru.Windowing;
 
@@ -24,10 +26,10 @@ public class Inner : Element {
 }
 
 public static class Static {
-    static double _t = 0;
+    private static double _t;
 
-    public static Window? _window;
-    public static DateTime _begin;
+    public static Window? Window;
+    public static DateTime Begin;
 
 
     private static SKPaint _textPaint = new SKPaint {
@@ -37,10 +39,10 @@ public static class Static {
 
     public static void Render(SKCanvas canvas) {
         canvas.DrawText("INTERNAL T = " + Math.Round(_t, 1), 10, 30, _textPaint);
-        canvas.DrawText("CONSTANT T = " + Math.Round((DateTime.Now - _begin).TotalSeconds, 1), 10, 60, _textPaint);
+        canvas.DrawText("CONSTANT T = " + Math.Round((DateTime.Now - Begin).TotalSeconds, 1), 10, 60, _textPaint);
 
 
-        if (_t == 0) _begin = DateTime.Now;
-        _t += _window!.RenderTime.DeltaTime;
+        if (_t == 0) Begin = DateTime.Now;
+        _t += Window!.RenderTime.DeltaTime;
     }
 }

@@ -2,9 +2,10 @@
 
 using OpenTK.Mathematics;
 using SkiaSharp;
+using Yoru.Graphics.Elements;
 using Yoru.Windowing;
 
-namespace Yoru.Graphics.Elements;
+namespace Yoru.Graphics;
 
 public class Element {
     public bool Cull { get; set; } = true;

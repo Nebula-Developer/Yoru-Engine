@@ -1,6 +1,8 @@
+using System;
 using System.Diagnostics;
 using OpenTK.Mathematics;
 using Xunit.Abstractions;
+using Yoru.Graphics;
 using Yoru.Graphics.Elements;
 using Yoru.Windowing;
 
