@@ -2,7 +2,6 @@
 
 ### C# Graphics Engine for simplified and efficient software development
 
-<br>
 
 ## About
 

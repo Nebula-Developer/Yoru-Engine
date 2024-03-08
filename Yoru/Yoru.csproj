@@ -6,6 +6,14 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <RootNamespace>Yoru</RootNamespace>
+        <PackageId>Yoru</PackageId>
+        <Authors>NebulaDev</Authors>
+        <Description>C# Graphics Engine for simplified and efficient software development</Description>
+        <PackageTags>Graphics, Engine, C#, Software, Development</PackageTags>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://github.com/nebula-developer/yoru-engine</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/nebula-developer/yoru-engine</RepositoryUrl>
         <Version>0.1.0</Version>
     </PropertyGroup>
 
@@ -13,6 +21,8 @@
         <PackageReference Include="opentk" Version="4.8.2"/>
         <PackageReference Include="skiasharp" Version="2.88.7"/>
         <PackageReference Include="Topten.RichTextKit" Version="0.4.166"/>
+        
+        <None Include="..\README.md" Pack="true" PackagePath=""/>
     </ItemGroup>
 
 </Project>
