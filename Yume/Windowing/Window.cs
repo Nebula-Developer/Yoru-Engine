@@ -208,13 +208,13 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
     protected sealed override void OnUnload() {
         base.OnUnload();
         Unload();
-    }
-
-    public sealed override void Close() {
+        _threadCountLock++;
         JoinThreads();
         Graphics?.Dispose();
-        base.Close();
+        Close();
     }
+
+    public sealed override void Close() => base.Close();
 
     protected sealed override void OnFramebufferResize(FramebufferResizeEventArgs e) {
         base.OnFramebufferResize(e);
