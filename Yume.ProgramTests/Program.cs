@@ -1,63 +1,67 @@
-﻿#pragma warning disable CS0162
-
-
-using System.Reflection;
-using OpenTK.Windowing.Common;
+﻿using System.Globalization;
 using SkiaSharp;
 using Yume.Graphics.Elements;
 using Yume.Input;
-using Window = Yume.Windowing.Window;
+using Yume.Windowing;
 
+namespace Yume.ProgramTests;
 
-namespace Yume;
-
-public class InheritWindow : Window {
-    public static readonly string InternalDll = Path.GetFullPath("../../../../Internal/bin/Debug/net8.0/Internal.dll");
-    private Action<SKCanvas>? _internalRenderMethod;
+public class ProgramTestWindow : Window {
+    private Box _box = new();
+    private SimpleText _updateText = new();
+    private SimpleText _frequencyText = new();
 
     protected override void Load() {
-        Console.WriteLine("Loading Internal.dll from " + InternalDll);
+        base.Load();
+        _box.Color = SKColors.Green;
+        _box.Transform.Size = new(100);
+        _box.Transform.ScaleWidth = true;
 
-        Assembly internalAssembly = Assembly.LoadFrom(InternalDll);
-        internalAssembly.GetType("Internal.Static")?.GetField("_window")?.SetValue(null, this);
+        _updateText.Transform.AnchorPosition = new(0.5f);
+        _frequencyText.Transform.AnchorPosition = new(0.5f);
+        _updateText.Transform.OffsetPosition = new(1, 0.5f);
+        _frequencyText.Transform.OffsetPosition = new(0, 0.5f);
+        
+        _updateText.Color = SKColors.Red;
+        _frequencyText.Color = SKColors.Orange;
+        
+        _updateText.FontSize = 50;
+        _frequencyText.FontSize = 50;
 
-        MethodInfo? staticRenderMethod = internalAssembly.GetType("Internal.Static")?.GetMethod("Render");
-        if (staticRenderMethod != null) {
-            _internalRenderMethod =
-                (Action<SKCanvas>)Delegate.CreateDelegate(typeof(Action<SKCanvas>), null, staticRenderMethod);
-        }
-
-        // get the Internal.Inner class (which inherits from Element)
-        Type? innerType = internalAssembly.GetType("Internal.Inner");
-        if (innerType != null) {
-            // create an instance of the Inner class
-            dynamic inner = (dynamic)Activator.CreateInstance(innerType)!;
-            inner.Parent = Element;
-        }
+        Element.AddChild(_box);
+        _box.AddChild(_updateText);
+        _box.AddChild(_frequencyText);
+        
+        _frequencyText.Text = Frequency.ToString(CultureInfo.InvariantCulture);
     }
 
-
-    protected override void Render() {
-        base.Render();
-        _internalRenderMethod!(Canvas);
-    }
+    private double freq = 60;
 
     protected override void Update() {
-        base.Update();
-
         if (Input.GetKeyDown(KeyCode.Space)) {
             IsMultiThreaded = !IsMultiThreaded;
-            Console.WriteLine(IsMultiThreaded);
+            Console.WriteLine("Multithreaded: " + IsMultiThreaded);
         }
+        
+        if (Input.GetKey(KeyCode.Up)) {
+            freq += 100.0 * (RenderTime.DeltaTime);
+            Frequency = (int)freq;
+            _frequencyText.Text = Frequency.ToString(CultureInfo.InvariantCulture);
+        }
+        
+        if (Input.GetKey(KeyCode.Down)) {
+            freq -= 100.0 * (RenderTime.DeltaTime);
+            Frequency = (int)freq;
+            _frequencyText.Text = Frequency.ToString(CultureInfo.InvariantCulture);
+        }
+
+        _updateText.Text = (1 / UpdateTime.RawDeltaTime).ToString("0.0");
     }
 }
 
 public static class Program {
     public static void Main(string[] args) {
-        InheritWindow window = new() {
-            Frequency = 144
-        };
-
-        window.Run();
+        ProgramTestWindow programTestWindow = new();
+        programTestWindow.Run();
     }
 }

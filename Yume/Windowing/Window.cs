@@ -63,6 +63,7 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
     /// and <see cref="RenderFrequency" />
     /// </summary>
     public float Frequency {
+        get => UpdateFrequency;
         set {
             UpdateFrequency = value;
             RenderFrequency = value;
@@ -77,7 +78,7 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
     public new float UpdateFrequency {
         get => _updateFrequency;
         set {
-            _updateFrequency = Math.Max(value, 1);
+            _updateFrequency = Math.Min(Math.Max(value, 10), 1000);
             base.UpdateFrequency = _updateFrequency;
         }
     }
@@ -87,7 +88,7 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
     /// </summary>
     public new float RenderFrequency {
         get => _renderFrequency;
-        set => _renderFrequency = Math.Max(value, 1);
+        set => _renderFrequency = Math.Min(Math.Max(value, 10), 1000);
     }
 
     private void MakeGraphicsInstance() {
@@ -228,8 +229,14 @@ public class Window() : GameWindow(GameWindowSettings.Default, new NativeWindowS
         Resize(e.Size);
     }
 
-    protected sealed override void OnKeyDown(KeyboardKeyEventArgs e) => Input.KeyDown(e.Key);
-    protected sealed override void OnKeyUp(KeyboardKeyEventArgs e) => Input.KeyUp(e.Key);
+    protected sealed override void OnKeyDown(KeyboardKeyEventArgs e) {
+        if (e.IsRepeat) return;
+        Input.KeyDown((KeyCode)e.Key);
+    }
+    protected sealed override void OnKeyUp(KeyboardKeyEventArgs e) {
+        if (e.IsRepeat) return;
+        Input.KeyUp((KeyCode)e.Key);
+    }
 
     protected sealed override void OnResize(ResizeEventArgs e) => base.OnResize(e);
 
