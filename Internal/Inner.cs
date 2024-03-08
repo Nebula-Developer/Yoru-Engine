@@ -2,8 +2,8 @@
 
 
 using SkiaSharp;
-using Yume.Graphics.Elements;
-using Yume.Windowing;
+using Yoru.Graphics.Elements;
+using Yoru.Windowing;
 
 
 namespace Internal;
