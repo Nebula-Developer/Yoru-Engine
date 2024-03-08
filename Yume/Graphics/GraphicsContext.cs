@@ -6,6 +6,17 @@ using Yume.Windowing;
 namespace Yume.Graphics;
 
 public class GraphicsContext(Window? window) : WindowContext(window) {
+#nullable disable
+    private GRGlInterface _interface;
+    private GRContext _context;
+    private GRBackendRenderTarget _renderTarget;
+
+    /// <summary>
+    ///     The SkiaSharp surface used for drawing
+    /// </summary>
+    public SKSurface Surface;
+#nullable restore
+
     public void Load() {
         if (Window == null)
             throw new InvalidOperationException("Cannot load graphics context without a window");
@@ -35,13 +46,4 @@ public class GraphicsContext(Window? window) : WindowContext(window) {
         _context?.Dispose();
         _interface?.Dispose();
     }
-#nullable disable
-    private GRGlInterface _interface;
-    private GRContext _context;
-    private GRBackendRenderTarget _renderTarget;
-
-    /// <summary>
-    ///     The SkiaSharp surface used for drawing
-    /// </summary>
-    public SKSurface Surface;
 }

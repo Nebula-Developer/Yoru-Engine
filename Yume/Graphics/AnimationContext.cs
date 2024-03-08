@@ -54,8 +54,7 @@ public class Animation {
 
 public class AnimationContext(Window? window) : WindowContext(window) {
     public Dictionary<string, Animation> Animations { get; } = new();
-
-
+    
     public void Add(Animation animation, string? name = null) {
         name = name ?? new DateTime().Ticks.ToString();
 

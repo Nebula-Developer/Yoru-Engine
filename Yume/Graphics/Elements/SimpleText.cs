@@ -10,7 +10,6 @@ public class SimpleText : ColorableElement {
         set => Paint.TextSize = value;
     }
 
-    protected override void Render(SKCanvas canvas) {
+    protected override void Render(SKCanvas canvas) =>
         canvas.DrawText(Text, 0, FontSize, Paint);
-    }
 }

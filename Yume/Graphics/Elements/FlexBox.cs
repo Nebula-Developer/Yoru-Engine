@@ -9,11 +9,9 @@ public enum FlexDirection {
 
 public class FlexBox : Element {
     private FlexDirection _direction = FlexDirection.Column;
-
     private float _margin;
-
     private bool _updating;
-
+    
     public bool ResetAxis = true;
 
     public float Margin {
