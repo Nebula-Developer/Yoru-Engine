@@ -9,7 +9,5 @@ public class RootElement : Element {
         Transform.Size = window.Size;
     }
 
-    protected override void Resize(Vector2 size) {
-        Transform.Size = size;
-    }
+    protected override void Resize(Vector2 size) => Transform.Size = size;
 }

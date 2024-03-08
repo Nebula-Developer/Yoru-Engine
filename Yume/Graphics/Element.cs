@@ -7,6 +7,8 @@ using Yume.Windowing;
 namespace Yume.Graphics.Elements;
 
 public class Element {
+    public bool Cull { get; set; } = true;
+    
     private readonly List<Element> _children = new();
     private bool _isLoaded;
 
@@ -125,6 +127,7 @@ public class Element {
     protected virtual void Update() { }
     protected virtual void Resize(Vector2 size) { }
     protected virtual void Load() { }
+
     protected virtual void Render(SKCanvas canvas) { }
     protected virtual void ChildAdded(Element child) { }
     protected virtual void ChildRemoved(Element child) { }
@@ -133,21 +136,21 @@ public class Element {
         ForChildren(child => child.RenderSelf(canvas));
     }
 
-    protected virtual bool ShouldRender() {
-        return !Window.Canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
+    protected virtual bool ShouldRender(SKCanvas canvas) {
+        return !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
     }
 
     public void RenderSelf(SKCanvas canvas) {
         if (Window == null) return;
 
-        var count = Window.Canvas.Save();
-        Transform.ApplyToCanvas(Window.Canvas);
+        var count = canvas.Save();
+        Transform.ApplyToCanvas(canvas);
 
-        if (ShouldRender())
+        if (!Cull || ShouldRender(canvas))
             Render(canvas);
 
         RenderChildren(canvas);
-        Window.Canvas.RestoreToCount(count);
+        canvas.RestoreToCount(count);
     }
 
     public void UpdateSelf() {
