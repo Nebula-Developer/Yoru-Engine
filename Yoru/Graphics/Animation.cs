@@ -13,66 +13,42 @@ public class Animation {
     public Action? OnComplete;
     public Action<double>? OnUpdate;
 
+    public void InvertDirection() {
+        switch (LoopMode) {
+            case AnimationLoopMode.Forward:
+                Direction = AnimationDirection.Forward;
+                Progress = 0;
+                break;
+            case AnimationLoopMode.Backward:
+                Direction = AnimationDirection.Backward;
+                Progress = Duration;
+                break;
+            case AnimationLoopMode.PingPong:
+            case AnimationLoopMode.Mirror:
+                Direction = Direction == AnimationDirection.Forward ? AnimationDirection.Backward : AnimationDirection.Forward;
+                Progress = Direction == AnimationDirection.Forward ? 0 : Duration;
+                break;
+            case AnimationLoopMode.None:
+                IsPlaying = false;
+                Progress = Direction == AnimationDirection.Forward ? Duration : 0;
+                OnComplete?.Invoke();
+                break;
+        }
+    }
+
     public void Update(double dt) {
+        if (!IsPlaying) return;
+
         if (Delay > 0) {
             Delay -= dt;
             return;
-        }
-
-        if (Delay < 0) Delay = 0;
-
-        if (!IsPlaying) return;
+        } else if (Delay < 0) Delay = 0;
 
         Progress += Direction == AnimationDirection.Forward ? dt : -dt;
 
-
-        if (Direction == AnimationDirection.Forward) {
-            if (Progress >= Duration) {
-                if (LoopMode == AnimationLoopMode.None) {
-                    IsPlaying = false;
-                    OnComplete?.Invoke();
-                    Progress = Duration;
-                } else {
-                    switch (LoopMode) {
-                        case AnimationLoopMode.Forward:
-                            Progress = 0;
-                            break;
-                        case AnimationLoopMode.Backward:
-                            Direction = AnimationDirection.Backward;
-                            Progress = Duration;
-                            break;
-                        case AnimationLoopMode.PingPong:
-                        case AnimationLoopMode.Mirror:
-                            Direction = AnimationDirection.Backward;
-                            Progress = Duration;
-                            break;
-                    }
-                }
-            }
-        } else {
-            if (Progress <= 0) {
-                if (LoopMode == AnimationLoopMode.None) {
-                    IsPlaying = false;
-                    OnComplete?.Invoke();
-                    Progress = 0;
-                } else {
-                    switch (LoopMode) {
-                        case AnimationLoopMode.Forward:
-                            Direction = AnimationDirection.Forward;
-                            Progress = 0;
-                            break;
-                        case AnimationLoopMode.Backward:
-                            Progress = Duration;
-                            break;
-                        case AnimationLoopMode.PingPong:
-                        case AnimationLoopMode.Mirror:
-                            Direction = AnimationDirection.Forward;
-                            Progress = 0;
-                            break;
-                    }
-                }
-            }
-        }
+       if ((Direction == AnimationDirection.Forward && Progress >= Duration)
+        || (Direction == AnimationDirection.Backward && Progress <= 0)) 
+            InvertDirection();
 
         var prog = Progress / Duration;
 

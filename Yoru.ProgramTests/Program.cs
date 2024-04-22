@@ -1,68 +1,120 @@
-﻿using System.Globalization;
-using OpenTK.Mathematics;
+﻿#nullable disable
+
 using SkiaSharp;
-using Yoru.Graphics.Elements;
+using Yoru.Elements;
+using Yoru.Graphics;
 using Yoru.Input;
-using Yoru.Windowing;
+using Yoru.Platforms.GL;
 
 namespace Yoru.ProgramTests;
 
-public class ProgramTestWindow : Window {
-    private Box _box = new();
-    private SimpleText _updateText = new();
-    private SimpleText _frequencyText = new();
+public class ProgramTestApp : Application {
+    public BoxElement box = new() {
+        Color = SKColors.Green,
+        Transform = new() {
+            Size = new(300),
+            AnchorPosition = new(0.5f),
+            OffsetPosition = new(0.5f),
+            RotationOffset = new(0.5f)
+        }
+    };
 
-    protected override void Load() {
-        base.Load();
-        _box.Color = SKColors.Green;
-        _box.Transform.Size = new Vector2(100);
-        _box.Transform.ScaleWidth = true;
+    public BoxElement childBox = new() {
+        Color = SKColors.Red,
+        Transform = new() {
+            Size = new(100),
+            AnchorPosition = new(1f),
+            OffsetPosition = new(1f),
+            RotationOffset = new(1f)
+        }
+    };
 
-        _updateText.Transform.AnchorPosition = new Vector2(0.5f);
-        _frequencyText.Transform.AnchorPosition = new Vector2(0.5f);
-        _updateText.Transform.OffsetPosition = new Vector2(1, 0.5f);
-        _frequencyText.Transform.OffsetPosition = new Vector2(0, 0.5f);
-        
-        _updateText.Color = SKColors.Red;
-        _frequencyText.Color = SKColors.Orange;
-        
-        _updateText.FontSize = 50;
-        _frequencyText.FontSize = 50;
+    public List<CircleElement> circles = new();
 
-        Element.AddChild(_box);
-        _box.AddChild(_updateText);
-        _box.AddChild(_frequencyText);
-        
-        _frequencyText.Text = Frequency.ToString(CultureInfo.InvariantCulture);
+    public CircleElement background = new() {
+        Color = SKColors.Aqua,
+        ZIndex = -1000,
+        Transform = new() {
+            ScaleHeight = true,
+            ScaleWidth = true
+        }
+    };
+
+    public TextElement text = new() {
+        Text = "Hello, World!",
+        Color = SKColors.White,
+        Transform = new() {
+            AnchorPosition = new(0.5f),
+            OffsetPosition = new(0.5f)
+        }
+    };
+
+    public override void OnLoad() {
+        base.OnLoad();
+        Element.AddChild(box);
+        Element.AddChild(background);
+        box.AddChild(childBox);
+        text.Parent = childBox;
+        text.TextSize = 30;
+
+        for (int i = 0; i < 10; i++) {
+            CircleElement circle = new();
+
+            circle.Color = SKColors.Magenta;
+            circle.Transform.Size = new(100);
+
+            Element.AddChild(circle);
+            circles.Add(circle);
+        }
+
+        Animations.Add(new Animation() {
+            Duration = 5,
+            LoopMode = AnimationLoopMode.Mirror,
+            Easing = (e) => Math.Pow(e, 3),
+            OnUpdate = (double p) => {
+                box.Transform.LocalRotation = (float)p * 360;
+            }
+        });
     }
 
-    private double freq = 60;
+    public override void OnMouseMove(System.Numerics.Vector2 position) {
+        base.OnMouseMove(position);
+        for (int i = 0; i < circles.Count; i++)
+            circles[i].Transform.LocalPosition = position * ((i + 4f) / 2f);
+    }
 
-    protected override void Update() {
-        if (Input.GetKeyDown(KeyCode.Space)) {
-            IsMultiThreaded = !IsMultiThreaded;
-            Console.WriteLine("Multithreaded: " + IsMultiThreaded);
-        }
-        
-        if (Input.GetKey(KeyCode.Up)) {
-            freq += 100.0 * (RenderTime.DeltaTime);
-            Frequency = (int)freq;
-            _frequencyText.Text = Frequency.ToString(CultureInfo.InvariantCulture);
-        }
-        
-        if (Input.GetKey(KeyCode.Down)) {
-            freq -= 100.0 * (RenderTime.DeltaTime);
-            Frequency = (int)freq;
-            _frequencyText.Text = Frequency.ToString(CultureInfo.InvariantCulture);
-        }
+    public override void OnUpdate() {
+        base.OnUpdate();
+        childBox.Transform.LocalRotation -= (float)UpdateTime.DeltaTime * 180;
 
-        _updateText.Text = (1 / UpdateTime.RawDeltaTime).ToString("0.0");
+        if (Input.GetMouseButtonDown(MouseButton.Left))
+            box.Color = SKColors.Orange;
+        
+        if (Input.GetMouseButtonUp(MouseButton.Left))
+            box.Color = SKColors.Green;
+    }
+
+    bool toggle = false;
+    public override void OnKeyDown(Key key) {
+        base.OnKeyDown(key);
+        if (key == Key.Escape) Close();
+
+        if (key == Key.Space) {
+            toggle = !toggle;
+            childBox.Transform.RotationOffset = toggle ? new(0.5f) : new(1f);
+            childBox.Transform.OffsetPosition = toggle ? new(0.5f) : new(1f);
+            childBox.Transform.AnchorPosition = toggle ? new(0.5f) : new(1f);
+        }
     }
 }
 
 public static class Program {
     public static void Main(string[] args) {
-        ProgramTestWindow programTestWindow = new();
+        GLWindow programTestWindow = new();
+        Console.CancelKeyPress += (s, e) => { programTestWindow.Close(); e.Cancel = true; };
+        programTestWindow.app = new ProgramTestApp();
         programTestWindow.Run();
+        Console.WriteLine("Program killed");
+        programTestWindow.Dispose();
     }
 }

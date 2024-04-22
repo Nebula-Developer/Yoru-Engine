@@ -1,9 +1,9 @@
 #nullable disable
 
-using OpenTK.Mathematics;
+using System.Numerics;
 using SkiaSharp;
 
-namespace Yoru.Graphics.Elements;
+namespace Yoru.Graphics;
 
 public class Transform {
     private Element _element;
@@ -13,9 +13,14 @@ public class Transform {
     public Element Element {
         get => _element;
         set {
-            if (_element != null && _element.Transform == this)
-                _element.Transform = new Transform();
+            if (_element == value) return;
+
+            Element previousElement = _element;
             _element = value;
+
+            if (previousElement != null && previousElement.Transform == this)
+                previousElement.Transform = null;
+            
             if (_element != null && _element.Transform != this)
                 _element.Transform = this;
 

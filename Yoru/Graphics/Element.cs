@@ -2,8 +2,6 @@
 
 using OpenTK.Mathematics;
 using SkiaSharp;
-using Yoru.Graphics.Elements;
-using Yoru.Windowing;
 
 namespace Yoru.Graphics;
 
@@ -17,7 +15,7 @@ public class Element {
 
     private Transform _transform;
 
-    private Window _window;
+    private Application _app;
 
     private int _zIndex;
 
@@ -35,21 +33,26 @@ public class Element {
             return _transform;
         }
         set {
-            if (_transform?.Element == this)
-                _transform.Element = null;
+            if (_transform == value) return;
+
+            Transform previousTransform = _transform;
             _transform = value ?? new Transform();
+
+            if (previousTransform?.Element == this)
+                previousTransform.Element = null;
+            
             if (_transform.Element != this)
                 _transform.Element = this;
         }
     }
 
-    protected Window Window {
-        get => _window;
+    protected Application App {
+        get => _app;
         set {
-            _window = value;
+            _app = value;
             ForChildren(child => {
-                if (child.Window != value)
-                    child.Window = value;
+                if (child.App != value)
+                    child.App = value;
             });
         }
     }
@@ -66,7 +69,7 @@ public class Element {
             if (_parent != null && !_parent.Children.Contains(this))
                 _parent.AddChild(this);
 
-            Window = Parent?.Window;
+            App = Parent?.App;
             Transform.UpdateTransforms();
         }
     }
@@ -126,7 +129,7 @@ public class Element {
     }
 
     protected virtual void Update() { }
-    protected virtual void Resize(Vector2 size) { }
+    protected virtual void Resize(int width, int height) { }
     protected virtual void Load() { }
 
     protected virtual void Render(SKCanvas canvas) { }
@@ -137,12 +140,11 @@ public class Element {
         ForChildren(child => child.RenderSelf(canvas));
     }
 
-    protected virtual bool ShouldRender(SKCanvas canvas) {
-        return !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
-    }
+    protected virtual bool ShouldRender(SKCanvas canvas)
+        => !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
 
     public void RenderSelf(SKCanvas canvas) {
-        if (Window == null) return;
+        if (App == null) return;
 
         var count = canvas.Save();
         Transform.ApplyToCanvas(canvas);
@@ -159,8 +161,8 @@ public class Element {
         ForChildren(child => child.UpdateSelf());
     }
 
-    public void ResizeSelf(Vector2 size) {
-        Resize(size);
-        ForChildren(child => child.ResizeSelf(size));
+    public void ResizeSelf(int width, int height) {
+        Resize(width, height);
+        ForChildren(child => child.ResizeSelf(width, height));
     }
 }
