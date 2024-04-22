@@ -1,8 +1,8 @@
-using Yoru.Windowing;
+using Yoru;
 
 namespace Yoru.Graphics;
 
-public class AnimationContext(Window? window) : WindowContext(window) {
+public class AnimationContext(Application app) : AppContext(app) {
     public Dictionary<string, Animation> Animations { get; } = new();
     
     public void Add(Animation animation, string? name = null) {
@@ -17,7 +17,7 @@ public class AnimationContext(Window? window) : WindowContext(window) {
     public void Update() {
         for (var i = 0; i < Animations.Count; i++) {
             var animation = Animations.ElementAt(i).Value;
-            animation.Update(Window?.UpdateTime.DeltaTime ?? 0);
+            animation.Update(App.UpdateTime.DeltaTime);
         }
     }
 }

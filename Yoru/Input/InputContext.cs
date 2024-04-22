@@ -1,43 +1,72 @@
+#nullable disable
+
 using System.Collections.Generic;
-using OpenTK.Windowing.Common.Input;
-using KeyCode = OpenTK.Windowing.GraphicsLibraryFramework.Keys;
-using Window = Yoru.Windowing.Window;
-using System.Collections.Generic;
-using Yoru.Windowing;
-using Windowing_Window = Yoru.Windowing.Window;
+using System.Numerics;
+using Yoru.Input;
 
 namespace Yoru.Input;
 
-public class InputContext(Windowing_Window window) : WindowContext(window) {
-    private Dictionary<KeyCode, bool> _keys = new();
-    private Dictionary<KeyCode, int> _keysDown = new();
-    private Dictionary<KeyCode, int> _keysUp = new();
+public class InputContext(Application app) : AppContext(app) {
+    private readonly Dictionary<Key, int> _pressedKeys = new();
+    private readonly Dictionary<Key, int> _releasedKeys = new();
+    private readonly Dictionary<MouseButton, int> _pressedButtons = new();
+    private readonly Dictionary<MouseButton, int> _releasedButtons = new();
 
-    public bool GetKeyDown(KeyCode key) => _keysDown.TryGetValue(key, out var value) && (value > 0);
+    public HashSet<Key> Keys { get; } = new HashSet<Key>();
+    public HashSet<MouseButton> Buttons { get; } = new HashSet<MouseButton>();
+    public Vector2 MousePosition { get; private set; }
 
-    public bool GetKeyUp(KeyCode key) => _keysUp.TryGetValue(key, out var value) && (value > 0);
-
-    public bool GetKey(KeyCode key) => _keys.TryGetValue(key, out var value) && value;
-
-    public void KeyDown(KeyCode key) {
-        _keys[key] = true;
-        _keysDown[key] = _keysDown.TryGetValue(key, out var value) ? value + 1 : 1;
-    }
-
-    public void KeyUp(KeyCode key) {
-        _keys[key] = false;
-        _keysUp[key] = _keysUp.TryGetValue(key, out var value) ? value + 1 : 1;
-    }
+    public void UpdateMousePosition(Vector2 position) => MousePosition = position;
 
     public void Update() {
-        foreach (var key in _keysDown.Keys) {
-            if (_keysDown[key] > 0)
-                _keysDown[key]--;
-        }
-        
-        foreach (var key in _keysUp.Keys) {
-            if (_keysUp[key] > 0)
-                _keysUp[key]--;
-        }
+        UpdateCollection(_pressedKeys);
+        UpdateCollection(_releasedKeys);
+        UpdateCollection(_pressedButtons);
+        UpdateCollection(_releasedButtons);
     }
+
+    private void UpdateCollection<T>(Dictionary<T, int> collection) {
+        var keysToRemove = new List<T>();
+
+        foreach (var item in collection) {
+            collection[item.Key]--;
+
+            if (collection[item.Key] <= 0)
+                keysToRemove.Add(item.Key);
+        }
+
+        keysToRemove.ForEach(key => collection.Remove(key));
+    }
+
+    public void HandleKeyDown(Key key) {
+        Keys.Add(key);
+        _pressedKeys.TryGetValue(key, out var count);
+        _pressedKeys[key] = count + 1;
+    }
+
+    public void HandleKeyUp(Key key) {
+        Keys.Remove(key);
+        _releasedKeys.TryGetValue(key, out var count);
+        _releasedKeys[key] = count + 1;
+    }
+
+    public void HandleMouseDown(MouseButton button) {
+        Buttons.Add(button);
+        _pressedButtons.TryGetValue(button, out var count);
+        _pressedButtons[button] = count + 1;
+    }
+
+    public void HandleMouseUp(MouseButton button) {
+        Buttons.Remove(button);
+        _releasedButtons.TryGetValue(button, out var count);
+        _releasedButtons[button] = count + 1;
+    }
+
+    public bool GetKey(Key key) => Keys.Contains(key);
+    public bool GetKeyDown(Key key) => _pressedKeys.ContainsKey(key);
+    public bool GetKeyUp(Key key) => _releasedKeys.ContainsKey(key);
+
+    public bool GetMouseButton(MouseButton button) => Buttons.Contains(button);
+    public bool GetMouseButtonDown(MouseButton button) => _pressedButtons.ContainsKey(button);
+    public bool GetMouseButtonUp(MouseButton button) => _releasedButtons.ContainsKey(button);
 }
