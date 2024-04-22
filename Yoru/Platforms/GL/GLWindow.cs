@@ -49,8 +49,7 @@ public class GLWindow : GameWindow, IApplicationHandler {
 
     public new double RenderFrequency { get => base.UpdateFrequency; set => base.UpdateFrequency = value; }
     public new double UpdateFrequency { get => base.UpdateFrequency; set => base.UpdateFrequency = value; }
-
-    public void SetTitle(string title) => Title = title;
-    public void SetSize(int width, int height) => base.Size = new(width, height);
-    public new Vector2 Size { get => new Vector2(base.FramebufferSize.X, base.FramebufferSize.Y); }
+    
+    public new string Title { get => base.Title; set => base.Title = value; } // Only for bridging
+    public new Vector2 Size { get => new Vector2(base.FramebufferSize.X, base.FramebufferSize.Y); set => base.Size = new((int)value.X, (int)value.Y); }
 }

@@ -4,7 +4,7 @@ using SkiaSharp;
 
 namespace Yoru.Graphics;
 
-public class Renderer : IDisposable {
+public abstract class Renderer : IDisposable {
     public SKCanvas Canvas => _surface.Canvas;
     public SKSurface Surface => _surface;
 

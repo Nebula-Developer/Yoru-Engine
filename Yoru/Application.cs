@@ -9,9 +9,9 @@ using System.Numerics;
 namespace Yoru;
 
 public class Application {
-    public IApplicationHandler Handler { get; set; }
+    public IApplicationHandler Handler { get; set; } = new HeadlessHandler();
 
-    public Renderer Renderer { get; set; } = new Renderer();
+    public Renderer Renderer { get; set; } = new EmptyRenderer();
     public SKCanvas Canvas => Renderer.Canvas;
 
     public TimeContext UpdateTime { get; protected set; }
@@ -20,7 +20,13 @@ public class Application {
     public InputContext Input { get; protected set; }
     public AnimationContext Animations { get; protected set; }
 
-    public RootElement Element;
+    public RootElement Element {
+        get {
+            if (_element == null) _element = new(this);
+            return _element;
+        }
+    }
+    private RootElement _element;
 
     public virtual void OnLoad() { }
     public virtual void OnUpdate() { }
@@ -39,7 +45,6 @@ public class Application {
 
         Input = new(this);
         Animations = new(this);
-        Element = new(this);
 
         UpdateTime = new(this);
         RenderTime = new(this);
