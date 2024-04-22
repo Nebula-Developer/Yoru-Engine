@@ -10,7 +10,7 @@ namespace Yoru;
 
 public class Application {
     public IApplicationHandler Handler { get; set; } = new HeadlessHandler();
-
+    
     public Renderer Renderer { get; set; } = new EmptyRenderer();
     public SKCanvas Canvas => Renderer.Canvas;
 

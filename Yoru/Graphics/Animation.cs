@@ -11,6 +11,7 @@ public class Animation {
     public Func<double, double>? Easing;
 
     public Action? OnComplete;
+    public Action<double>? OnLoop;
     public Action<double>? OnUpdate;
 
     public void InvertDirection() {
@@ -32,8 +33,10 @@ public class Animation {
                 IsPlaying = false;
                 Progress = Direction == AnimationDirection.Forward ? Duration : 0;
                 OnComplete?.Invoke();
-                break;
+                return;
         }
+
+        OnUpdate?.Invoke(Progress);
     }
 
     public void Update(double dt) {
@@ -47,8 +50,11 @@ public class Animation {
         Progress += Direction == AnimationDirection.Forward ? dt : -dt;
 
        if ((Direction == AnimationDirection.Forward && Progress >= Duration)
-        || (Direction == AnimationDirection.Backward && Progress <= 0)) 
+        || (Direction == AnimationDirection.Backward && Progress <= 0)) {
+            int absDirection = Direction == AnimationDirection.Forward ? 1 : 0;
+            OnLoop?.Invoke(absDirection);
             InvertDirection();
+        }
 
         var prog = Progress / Duration;
 

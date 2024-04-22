@@ -1,16 +1,18 @@
 ﻿#nullable disable
 
+using System.Reflection;
 using SkiaSharp;
 using Yoru.Elements;
 using Yoru.Graphics;
 using Yoru.Input;
+using Yoru.Mathematics;
 using Yoru.Platforms.GL;
 
 namespace Yoru.ProgramTests;
 
 public class ProgramTestApp : Application {
-    public BoxElement box = new() {
-        Color = SKColors.Green,
+    BoxElement box = new() {
+        Color = SKColors.White,
         Transform = new() {
             Size = new(300),
             AnchorPosition = new(0.5f),
@@ -19,92 +21,47 @@ public class ProgramTestApp : Application {
         }
     };
 
-    public BoxElement childBox = new() {
-        Color = SKColors.Red,
+    TextElement methodName = new() {
+        AutoResize = false,
         Transform = new() {
-            Size = new(100),
-            AnchorPosition = new(1f),
-            OffsetPosition = new(1f),
-            RotationOffset = new(1f)
-        }
-    };
-
-    public List<CircleElement> circles = new();
-
-    public CircleElement background = new() {
-        Color = SKColors.Aqua,
-        ZIndex = -1000,
-        Transform = new() {
-            ScaleHeight = true,
+            Size = new(50),
             ScaleWidth = true
-        }
+        },
+        TextSize = 40,
+        Alignment = TextAlignment.Center
     };
 
-    public TextElement text = new() {
-        Text = "Hello, World!",
-        Color = SKColors.White,
+    BoxElement progress = new() {
+        Color = new SKColor(100, 100, 100),
         Transform = new() {
-            AnchorPosition = new(0.5f),
-            OffsetPosition = new(0.5f)
+            Size = new(50)
         }
     };
 
     public override void OnLoad() {
         base.OnLoad();
         Element.AddChild(box);
-        Element.AddChild(background);
-        box.AddChild(childBox);
-        text.Parent = childBox;
-        text.TextSize = 30;
+        Element.AddChild(progress);
+        Element.AddChild(methodName);
 
-        for (int i = 0; i < 10; i++) {
-            CircleElement circle = new();
-
-            circle.Color = SKColors.Magenta;
-            circle.Transform.Size = new(100);
-
-            Element.AddChild(circle);
-            circles.Add(circle);
-        }
+        int e = 0;
+        MethodInfo[] methods = typeof(Easing).GetMethods(BindingFlags.Public | BindingFlags.Static);
+        Func<double, double> ease = (Func<double, double>)methods[0].CreateDelegate(typeof(Func<double, double>));
+        methodName.Text = methods[0].Name;
 
         Animations.Add(new Animation() {
             Duration = 5,
-            LoopMode = AnimationLoopMode.Mirror,
-            Easing = (e) => Math.Pow(e, 3),
-            OnUpdate = (double p) => {
-                box.Transform.LocalRotation = (float)p * 360;
+            LoopMode = AnimationLoopMode.Forward,
+            OnUpdate = (double t) => {
+                box.Transform.LocalRotation = (float)ease(t) * 360;
+                progress.Transform.Size = new(Element.Transform.Size.X * (float)t, 50);
+            },
+            OnLoop = (double t) => {
+                e++;
+                ease = (Func<double, double>)methods[e % methods.Length].CreateDelegate(typeof(Func<double, double>));
+                methodName.Text = methods[e % methods.Length].Name;
             }
         });
-    }
-
-    public override void OnMouseMove(System.Numerics.Vector2 position) {
-        base.OnMouseMove(position);
-        for (int i = 0; i < circles.Count; i++)
-            circles[i].Transform.LocalPosition = position * ((i + 4f) / 2f);
-    }
-
-    public override void OnUpdate() {
-        base.OnUpdate();
-        childBox.Transform.LocalRotation -= (float)UpdateTime.DeltaTime * 180;
-
-        if (Input.GetMouseButtonDown(MouseButton.Left))
-            box.Color = SKColors.Orange;
-        
-        if (Input.GetMouseButtonUp(MouseButton.Left))
-            box.Color = SKColors.Green;
-    }
-
-    bool toggle = false;
-    public override void OnKeyDown(Key key) {
-        base.OnKeyDown(key);
-        if (key == Key.Escape) Close();
-
-        if (key == Key.Space) {
-            toggle = !toggle;
-            childBox.Transform.RotationOffset = toggle ? new(0.5f) : new(1f);
-            childBox.Transform.OffsetPosition = toggle ? new(0.5f) : new(1f);
-            childBox.Transform.AnchorPosition = toggle ? new(0.5f) : new(1f);
-        }
     }
 }
 
