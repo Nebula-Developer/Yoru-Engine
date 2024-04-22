@@ -1,4 +1,5 @@
 
+using System.Numerics;
 using System.Reflection;
 using SkiaSharp;
 using Yoru.Elements;
@@ -21,18 +22,22 @@ public class EasingTestApp : Application {
     TextElement methodName = new() {
         AutoResize = false,
         Transform = new() {
-            Size = new(50),
+            Size = new(70),
             ScaleWidth = true
         },
-        TextSize = 40,
-        Alignment = TextAlignment.Center,
-        Color = SKColors.Red
+        TextSize = 50,
+        Alignment = TextAlignment.Center
     };
 
     BoxElement progress = new() {
-        Color = new SKColor(100, 100, 100),
+        Color = new SKColor(100, 140, 150),
+    };
+    
+    BoxElement background = new() {
+        ZIndex = -5,
+        Color = new SKColor(50, 70, 100),
         Transform = new() {
-            Size = new(50)
+            ParentScale = Vector2.One
         }
     };
 
@@ -41,6 +46,7 @@ public class EasingTestApp : Application {
         Element.AddChild(box);
         Element.AddChild(progress);
         Element.AddChild(methodName);
+        Element.AddChild(background);
 
         int e = 0;
         MethodInfo[] methods = typeof(Easing).GetMethods(BindingFlags.Public | BindingFlags.Static);
@@ -52,7 +58,7 @@ public class EasingTestApp : Application {
             LoopMode = AnimationLoopMode.Forward,
             OnUpdate = (double t) => {
                 box.Transform.LocalRotation = (float)ease(t) * 360;
-                progress.Transform.Size = new(Element.Transform.Size.X * (float)t, 50);
+                progress.Transform.Size = new(Element.Transform.Size.X * (float)t, 70);
             },
             OnLoop = (double t) => {
                 e++;

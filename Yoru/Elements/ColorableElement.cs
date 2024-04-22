@@ -6,7 +6,9 @@ namespace Yoru.Elements;
 
 public abstract class ColorableElement : Element {
     public SKPaint Paint = new() {
-        Color = SKColors.White
+        Color = SKColors.White,
+        IsAntialias = true,
+        FilterQuality = SKFilterQuality.Low
     };
     
     public SKColor Color {

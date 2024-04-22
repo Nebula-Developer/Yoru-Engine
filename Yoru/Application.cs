@@ -8,13 +8,19 @@ using System.Numerics;
 
 namespace Yoru;
 
+public class CanvasRenderer {
+    
+}
+
 public class Application {
     public IApplicationHandler Handler { get; set; } = new HeadlessHandler();
     
     public bool FlushRenderer { get; set; } = true;
-    public bool ClearRenderer { get; set; } = true;
+    public bool ClearCanvas { get; set; } = true;
     public Renderer Renderer { get; set; } = new EmptyRenderer();
-    public SKCanvas Canvas => Renderer.Canvas;
+
+    public CanvasContext ElementCanvasContext { get; protected set; }
+    public SKCanvas AppCanvas => Renderer.Surface.Canvas;
 
     public TimeContext UpdateTime { get; protected set; }
     public TimeContext RenderTime { get; protected set; }
@@ -45,6 +51,7 @@ public class Application {
         Renderer.Load();
         Renderer.Resize((int)Handler.Size.X, (int)Handler.Size.Y);
 
+        ElementCanvasContext = new(this);
         Input = new(this);
         Animations = new(this);
 
@@ -67,15 +74,15 @@ public class Application {
 
     public void Render() {
         RenderTime.Update();
-        if (ClearRenderer) Canvas.Clear(SKColors.Black);
-        Element.RenderSelf(Canvas);
+        if (ClearCanvas) ElementCanvasContext.Canvas.Clear(SKColors.Black);
+        Element.RenderSelf(ElementCanvasContext.Canvas);
         OnRender();
         if (FlushRenderer) Renderer.Flush();
     }
 
     public void Resize(int width, int height) {
         Renderer.Resize(width, height);
-        Element.ResizeSelf(width, height);
+        if (ElementCanvasContext.UseRendererCanvas) Element.ResizeSelf(width, height);
         OnResize(width, height);
     }
 
