@@ -10,66 +10,59 @@ using Yoru.Platforms.GL;
 
 namespace Yoru.ProgramTests;
 
-public class ProgramTestApp : Application {
-    BoxElement box = new() {
-        Color = SKColors.White,
-        Transform = new() {
-            Size = new(300),
-            AnchorPosition = new(0.5f),
-            OffsetPosition = new(0.5f),
-            RotationOffset = new(0.5f)
-        }
-    };
+public class TestAppSwitcher : Application {
+    public EasingTestApp easing = new();
+    public ImageElement backgroundImage = new(AppDomain.CurrentDomain.BaseDirectory + "Image.jpg");
+    private float imageRatio;
 
-    TextElement methodName = new() {
-        AutoResize = false,
-        Transform = new() {
-            Size = new(50),
-            ScaleWidth = true
-        },
-        TextSize = 40,
-        Alignment = TextAlignment.Center
-    };
-
-    BoxElement progress = new() {
-        Color = new SKColor(100, 100, 100),
-        Transform = new() {
-            Size = new(50)
+    public void ResizeBackground() {
+        float width = Handler.Size.X;
+        float height = Handler.Size.Y;
+        if (width / height > imageRatio) {
+            backgroundImage.Transform.Size = new(width, width / imageRatio);
+        } else {
+            backgroundImage.Transform.Size = new(height * imageRatio, height);
         }
-    };
+    }
 
     public override void OnLoad() {
         base.OnLoad();
-        Element.AddChild(box);
-        Element.AddChild(progress);
-        Element.AddChild(methodName);
+        easing.Renderer = this.Renderer;
+        easing.Handler = this.Handler;
+        easing.FlushRenderer = false;
+        easing.ClearRenderer = false;
+        easing.Load();
 
-        int e = 0;
-        MethodInfo[] methods = typeof(Easing).GetMethods(BindingFlags.Public | BindingFlags.Static);
-        Func<double, double> ease = (Func<double, double>)methods[0].CreateDelegate(typeof(Func<double, double>));
-        methodName.Text = methods[0].Name;
+        Element.AddChild(backgroundImage);
+        backgroundImage.Transform.OffsetPosition = new(0.5f);
+        backgroundImage.Transform.AnchorPosition = new(0.5f);
+        imageRatio = backgroundImage.Transform.Size.X / backgroundImage.Transform.Size.Y;
+        ResizeBackground();
+    }
 
-        Animations.Add(new Animation() {
-            Duration = 5,
-            LoopMode = AnimationLoopMode.Forward,
-            OnUpdate = (double t) => {
-                box.Transform.LocalRotation = (float)ease(t) * 360;
-                progress.Transform.Size = new(Element.Transform.Size.X * (float)t, 50);
-            },
-            OnLoop = (double t) => {
-                e++;
-                ease = (Func<double, double>)methods[e % methods.Length].CreateDelegate(typeof(Func<double, double>));
-                methodName.Text = methods[e % methods.Length].Name;
-            }
-        });
+    public override void OnRender() {
+        base.OnRender();
+        easing.Render();
+    }
+
+    public override void OnUpdate() {
+        base.OnUpdate();
+        easing.Update();
+    }
+
+    public override void OnResize(int width, int height) {
+        base.OnResize(width, height);
+        easing.Resize(width, height);
+        ResizeBackground();
     }
 }
+
 
 public static class Program {
     public static void Main(string[] args) {
         GLWindow programTestWindow = new();
         Console.CancelKeyPress += (s, e) => { programTestWindow.Close(); e.Cancel = true; };
-        programTestWindow.app = new ProgramTestApp();
+        programTestWindow.app = new TestAppSwitcher();
         programTestWindow.Run();
         Console.WriteLine("Program killed");
         programTestWindow.Dispose();

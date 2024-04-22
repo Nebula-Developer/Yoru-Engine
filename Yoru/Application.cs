@@ -11,6 +11,8 @@ namespace Yoru;
 public class Application {
     public IApplicationHandler Handler { get; set; } = new HeadlessHandler();
     
+    public bool FlushRenderer { get; set; } = true;
+    public bool ClearRenderer { get; set; } = true;
     public Renderer Renderer { get; set; } = new EmptyRenderer();
     public SKCanvas Canvas => Renderer.Canvas;
 
@@ -65,10 +67,10 @@ public class Application {
 
     public void Render() {
         RenderTime.Update();
-        Canvas.Clear(SKColors.Black);
+        if (ClearRenderer) Canvas.Clear(SKColors.Black);
         Element.RenderSelf(Canvas);
         OnRender();
-        Renderer.Flush();
+        if (FlushRenderer) Renderer.Flush();
     }
 
     public void Resize(int width, int height) {
