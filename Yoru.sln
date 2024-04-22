@@ -3,13 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoru", "Yoru\Yoru.csproj", "{39E5ED05-3B74-4DD6-A701-9BAB01C35F0F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoru.Tests", "Yoru.Tests\Yoru.Tests.csproj", "{35D0F878-68B6-4E44-A793-A4EAD7848BD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoru.Tests", "Yoru.Tests\Yoru.Tests.csproj", "{50A0D2B4-B428-49E8-8A1D-90FB86F863F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoru", "Yoru\Yoru.csproj", "{381DA3E7-9471-4B6C-BCC3-91DCD092342A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoru.ProgramTests", "Yoru.ProgramTests\Yoru.ProgramTests.csproj", "{4F4C741B-74A1-4057-B878-264379C46FCB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Internal", "Internal\Internal.csproj", "{61FCACDF-8A63-48C2-86AF-95C1B2C77D9E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoru.ProgramTests", "Yoru.ProgramTests\Yoru.ProgramTests.csproj", "{EB8556E2-CFEC-4889-9D43-E7D9C666C3C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,6 +47,18 @@ Global
 		{61FCACDF-8A63-48C2-86AF-95C1B2C77D9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61FCACDF-8A63-48C2-86AF-95C1B2C77D9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61FCACDF-8A63-48C2-86AF-95C1B2C77D9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35D0F878-68B6-4E44-A793-A4EAD7848BD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35D0F878-68B6-4E44-A793-A4EAD7848BD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35D0F878-68B6-4E44-A793-A4EAD7848BD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35D0F878-68B6-4E44-A793-A4EAD7848BD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{381DA3E7-9471-4B6C-BCC3-91DCD092342A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{381DA3E7-9471-4B6C-BCC3-91DCD092342A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{381DA3E7-9471-4B6C-BCC3-91DCD092342A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{381DA3E7-9471-4B6C-BCC3-91DCD092342A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB8556E2-CFEC-4889-9D43-E7D9C666C3C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB8556E2-CFEC-4889-9D43-E7D9C666C3C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB8556E2-CFEC-4889-9D43-E7D9C666C3C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB8556E2-CFEC-4889-9D43-E7D9C666C3C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
