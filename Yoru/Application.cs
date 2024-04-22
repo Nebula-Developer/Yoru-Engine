@@ -25,7 +25,7 @@ public class Application {
     public virtual void OnUpdate() { }
     public virtual void OnRender() { }
     public virtual void OnResize(int width, int height) { }
-    public virtual bool OnClose() { return false; }
+    public virtual bool OnClose() => true;
     public virtual void OnKeyDown(Key key) { }
     public virtual void OnKeyUp(Key key) { }
     public virtual void OnMouseDown(MouseButton button) { }
