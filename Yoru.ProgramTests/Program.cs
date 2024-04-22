@@ -54,11 +54,19 @@ public class ProgramTestApp : Application {
         base.OnLoad();
         Element.AddChild(box);
         box.AddChild(childBox);
+
+        Animations.Add(new Animation() {
+            Duration = 5,
+            LoopMode = AnimationLoopMode.Mirror,
+            Easing = (e) => Math.Pow(e, 3),
+            OnUpdate = (double p) => {
+                box.Transform.LocalRotation = (float)p * 360;
+            }
+        });
     }
 
     public override void OnUpdate() {
         base.OnUpdate();
-        box.Transform.LocalRotation += (float)UpdateTime.DeltaTime * 90;
         childBox.Transform.LocalRotation -= (float)UpdateTime.DeltaTime * 180;
 
         if (Input.GetMouseButtonDown(MouseButton.Left))

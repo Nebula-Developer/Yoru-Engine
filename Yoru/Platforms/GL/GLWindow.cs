@@ -17,6 +17,7 @@ public class GLWindow : GameWindow, IApplicationHandler {
     protected override void OnLoad() {
         base.OnLoad();
 
+        UpdateFrequency = 60;
         renderer = new();
 
         app.Handler = this;

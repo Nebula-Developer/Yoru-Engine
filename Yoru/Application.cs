@@ -18,6 +18,7 @@ public class Application {
     public TimeContext RenderTime { get; protected set; }
 
     public InputContext Input { get; protected set; }
+    public AnimationContext Animations { get; protected set; }
 
     public RootElement Element;
 
@@ -37,6 +38,7 @@ public class Application {
         Renderer.Resize((int)Handler.Size.X, (int)Handler.Size.Y);
 
         Input = new(this);
+        Animations = new(this);
         Element = new(this);
 
         UpdateTime = new(this);
@@ -50,6 +52,7 @@ public class Application {
 
     public void Update() {
         UpdateTime.Update();
+        Animations.Update();
         Element.UpdateSelf();
         OnUpdate();
         Input.Update();
