@@ -13,9 +13,14 @@ public class Transform {
     public Element Element {
         get => _element;
         set {
-            if (_element != null && _element.Transform == this)
-                _element.Transform = new Transform();
+            if (_element == value) return;
+
+            Element previousElement = _element;
             _element = value;
+
+            if (previousElement != null && previousElement.Transform == this)
+                previousElement.Transform = null;
+            
             if (_element != null && _element.Transform != this)
                 _element.Transform = this;
 

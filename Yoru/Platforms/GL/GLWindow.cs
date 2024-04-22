@@ -43,7 +43,9 @@ public class GLWindow : GameWindow, IApplicationHandler {
 
     protected override void OnMouseDown(MouseButtonEventArgs e) => app.MouseDown((MouseButton)e.Button);
     protected override void OnMouseUp(MouseButtonEventArgs e) => app.MouseUp((MouseButton)e.Button);
-    protected override void OnMouseMove(MouseMoveEventArgs e) => app.MouseMove(Vector2.Clamp(new(MouseState.Position.X, MouseState.Position.Y), Vector2.Zero, Size));
+    protected override void OnMouseMove(MouseMoveEventArgs e) => app.MouseMove(Vector2.Clamp(new(MouseState.Position.X * _dpi, MouseState.Position.Y * _dpi), Vector2.Zero, Size));
+
+    private float _dpi => FramebufferSize.X / base.Size.X;
 
     public new double RenderFrequency { get => base.UpdateFrequency; set => base.UpdateFrequency = value; }
     public new double UpdateFrequency { get => base.UpdateFrequency; set => base.UpdateFrequency = value; }

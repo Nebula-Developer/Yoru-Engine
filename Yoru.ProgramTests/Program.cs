@@ -1,36 +1,15 @@
 ﻿#nullable disable
 
-using System.Globalization;
-using OpenTK.Graphics.ES11;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
 using SkiaSharp;
+using Yoru.Elements;
 using Yoru.Graphics;
 using Yoru.Input;
 using Yoru.Platforms.GL;
 
 namespace Yoru.ProgramTests;
 
-public class Box : Element {
-    public SKColor Color {
-        get => Paint.Color;
-        set => Paint.Color = value;
-    }
-    public SKPaint Paint = new() { Color = SKColors.White };
-
-    protected override void Load() {
-        Console.WriteLine("Loaded element: " + GetHashCode());
-    }
-
-    protected override void Render(SKCanvas canvas) {
-        base.Render(canvas);
-        canvas.DrawRect(0, 0, Transform.Size.X, Transform.Size.Y, Paint);
-    }
-}
-
 public class ProgramTestApp : Application {
-    public Box box = new() {
+    public BoxElement box = new() {
         Color = SKColors.Green,
         Transform = new() {
             Size = new(300),
@@ -40,7 +19,7 @@ public class ProgramTestApp : Application {
         }
     };
 
-    public Box childBox = new() {
+    public BoxElement childBox = new() {
         Color = SKColors.Red,
         Transform = new() {
             Size = new(100),
@@ -50,10 +29,43 @@ public class ProgramTestApp : Application {
         }
     };
 
+    public List<CircleElement> circles = new();
+
+    public CircleElement background = new() {
+        Color = SKColors.Aqua,
+        ZIndex = -1000,
+        Transform = new() {
+            ScaleHeight = true,
+            ScaleWidth = true
+        }
+    };
+
+    public TextElement text = new() {
+        Text = "Hello, World!",
+        Color = SKColors.White,
+        Transform = new() {
+            AnchorPosition = new(0.5f),
+            OffsetPosition = new(0.5f)
+        }
+    };
+
     public override void OnLoad() {
         base.OnLoad();
         Element.AddChild(box);
+        Element.AddChild(background);
         box.AddChild(childBox);
+        text.Parent = childBox;
+        text.TextSize = 30;
+
+        for (int i = 0; i < 10; i++) {
+            CircleElement circle = new();
+
+            circle.Color = SKColors.Magenta;
+            circle.Transform.Size = new(100);
+
+            Element.AddChild(circle);
+            circles.Add(circle);
+        }
 
         Animations.Add(new Animation() {
             Duration = 5,
@@ -63,6 +75,12 @@ public class ProgramTestApp : Application {
                 box.Transform.LocalRotation = (float)p * 360;
             }
         });
+    }
+
+    public override void OnMouseMove(System.Numerics.Vector2 position) {
+        base.OnMouseMove(position);
+        for (int i = 0; i < circles.Count; i++)
+            circles[i].Transform.LocalPosition = position * ((i + 4f) / 2f);
     }
 
     public override void OnUpdate() {

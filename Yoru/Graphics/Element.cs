@@ -33,9 +33,14 @@ public class Element {
             return _transform;
         }
         set {
-            if (_transform?.Element == this)
-                _transform.Element = null;
+            if (_transform == value) return;
+
+            Transform previousTransform = _transform;
             _transform = value ?? new Transform();
+
+            if (previousTransform?.Element == this)
+                previousTransform.Element = null;
+            
             if (_transform.Element != this)
                 _transform.Element = this;
         }
@@ -135,9 +140,8 @@ public class Element {
         ForChildren(child => child.RenderSelf(canvas));
     }
 
-    protected virtual bool ShouldRender(SKCanvas canvas) {
-        return !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
-    }
+    protected virtual bool ShouldRender(SKCanvas canvas)
+        => !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
 
     public void RenderSelf(SKCanvas canvas) {
         if (App == null) return;
