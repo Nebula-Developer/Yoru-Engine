@@ -11,7 +11,7 @@ public static class Program {
             programTestWindow.Close();
             e.Cancel = true;
         };
-        programTestWindow.app = new EasingTestApp();
+        programTestWindow.App = new EasingTestApp();
         programTestWindow.Run();
         Console.WriteLine("Program killed");
         programTestWindow.Dispose();

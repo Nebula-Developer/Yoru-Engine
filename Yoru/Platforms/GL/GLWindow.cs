@@ -2,15 +2,14 @@
 
 using System.Numerics;
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Common.Input;
 using OpenTK.Windowing.Desktop;
 using Yoru.Input;
 
 namespace Yoru.Platforms.GL;
 
 public class GLWindow : GameWindow, IApplicationHandler {
-    public Application app;
-    public GLRenderer renderer;
+    public Application App;
+    public GLRenderer Renderer;
     public GLWindow() : base(GameWindowSettings.Default, NativeWindowSettings.Default) { }
     public GLWindow(GameWindowSettings gws, NativeWindowSettings nws) : base(gws, nws) { }
     
@@ -24,36 +23,34 @@ public class GLWindow : GameWindow, IApplicationHandler {
         base.OnLoad();
         
         UpdateFrequency = 200;
-        renderer = new();
+        Renderer = new();
         
-        app.Handler = this;
-        app.Renderer = renderer;
-        renderer.GLContext = Context;
+        App.Handler = this;
+        App.Renderer = Renderer;
+        Renderer.GLContext = Context;
         
-        app.Load();
-        // hide cursor
-        Cursor = MouseCursor.Empty;
+        App.Load();
     }
     
-    protected override void OnRenderFrame(FrameEventArgs args) => app.Render();
-    protected override void OnUpdateFrame(FrameEventArgs args) => app.Update();
+    protected override void OnRenderFrame(FrameEventArgs args) => App.Render();
+    protected override void OnUpdateFrame(FrameEventArgs args) => App.Update();
     protected override void OnFramebufferResize(FramebufferResizeEventArgs e) {
         float dpi = FramebufferSize.X / base.Size.X;
-        app.CanvasScale = dpi;
-        app.Resize(e.Width, e.Height);
+        App.CanvasScale = dpi;
+        App.Resize(e.Width, e.Height);
     }
     
     protected override void OnKeyDown(KeyboardKeyEventArgs e) {
         if (e.IsRepeat) return;
-        app.KeyDown((Key)e.Key);
+        App.KeyDown((Key)e.Key);
     }
     
     protected override void OnKeyUp(KeyboardKeyEventArgs e) {
         if (e.IsRepeat) return;
-        app.KeyUp((Key)e.Key);
+        App.KeyUp((Key)e.Key);
     }
     
-    protected override void OnMouseDown(MouseButtonEventArgs e) => app.MouseDown((MouseButton)e.Button);
-    protected override void OnMouseUp(MouseButtonEventArgs e) => app.MouseUp((MouseButton)e.Button);
-    protected override void OnMouseMove(MouseMoveEventArgs e) => app.MouseMove(Vector2.Clamp(new(MouseState.Position.X, MouseState.Position.Y), Vector2.Zero, Size));
+    protected override void OnMouseDown(MouseButtonEventArgs e) => App.MouseDown((MouseButton)e.Button);
+    protected override void OnMouseUp(MouseButtonEventArgs e) => App.MouseUp((MouseButton)e.Button);
+    protected override void OnMouseMove(MouseMoveEventArgs e) => App.MouseMove(Vector2.Clamp(new(MouseState.Position.X, MouseState.Position.Y), Vector2.Zero, Size));
 }

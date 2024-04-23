@@ -45,7 +45,7 @@ public class Application {
     
     public void Load() {
         Renderer.Load();
-        Renderer.Resize((int)Handler.Size.X, (int)Handler.Size.Y);
+        Resize((int)Handler.Size.X, (int)Handler.Size.Y);
         
         Input = new(this);
         Animations = new(this);
