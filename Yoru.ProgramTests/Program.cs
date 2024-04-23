@@ -117,17 +117,26 @@ public class GridTestApp : Application {
         }
         
         for (var i = 0; i < 16; i++) {
+            float size = new Random().Next(50, 200);
             DraggableElement draggable = new() {
-                Button = MouseButton.Right,
                 Transform = new() {
-                    Size = new(100)
+                    Size = new(size)
                 }
             };
 
             draggable.AddChild(new BoxElement {
+                Color = i % 2 == 0 ? SKColors.Blue : SKColors.Orange,
+                Transform = new() {
+                    Size = new(size)
+                }
+            });
+
+            draggable.AddChild(new BoxElement {
                 Color = i % 2 == 0 ? SKColors.Orange : SKColors.Blue,
                 Transform = new() {
-                    Size = new(100)
+                    Size = new(size - 5),
+                    AnchorPosition = new(0.5f),
+                    OffsetPosition = new(0.5f)
                 }
             });
 
