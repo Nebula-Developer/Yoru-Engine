@@ -45,6 +45,15 @@ public class Transform {
         canvas.Translate(PivotPosition.X, PivotPosition.Y);
     }
     
+    public SKMatrix GetMatrix() {
+        Vector2 rotationPos = new(PivotPosition.X + Size.X * RotationOffset.X,
+            PivotPosition.Y + Size.Y * RotationOffset.Y);
+        var matrix = SKMatrix.CreateIdentity();
+        matrix = matrix.PostConcat(SKMatrix.CreateRotationDegrees(LocalRotation, rotationPos.X, rotationPos.Y));
+        matrix = matrix.PostConcat(SKMatrix.CreateTranslation(PivotPosition.X, PivotPosition.Y));
+        return matrix;
+    }
+    
     protected virtual void ElementChanged() { }
     
     #region Size

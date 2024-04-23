@@ -1,6 +1,8 @@
 #nullable disable
 
+using System.Numerics;
 using SkiaSharp;
+using Yoru.Input;
 
 namespace Yoru.Graphics;
 
@@ -49,6 +51,13 @@ public class Element {
     protected Application App {
         get => _app;
         set {
+            if (_app != value) {
+                if (_app != null && _app.Input != null)
+                    _app.Input.InputElements.Remove(this);
+                if (value != null && value.Input != null)
+                    value.Input.InputElements.Add(this);
+            }
+            
             _app = value;
             ForChildren(child => {
                 if (child.App != value)
@@ -116,9 +125,10 @@ public class Element {
         if (child.Parent != this)
             child.Parent = this;
         
-        if (child._isLoaded) return;
-        child.Load();
-        child._isLoaded = true;
+        if (!child._isLoaded) {
+            child.Load();
+            child._isLoaded = true;
+        }
         
         ChildAdded(child);
     }
@@ -140,6 +150,24 @@ public class Element {
     protected virtual void RenderChildren(SKCanvas canvas) => ForChildren(child => child.RenderSelf(canvas));
     
     protected virtual void TransformChanged() { }
+    
+    public virtual bool CheckMouseIntersect(Vector2 position) {
+        if (Transform.Size.X == 0 || Transform.Size.Y == 0) return false;
+        
+        if (position.X >= Transform.WorldPosition.X && position.X <= Transform.WorldPosition.X + Transform.Size.X &&
+            position.Y >= Transform.WorldPosition.Y && position.Y <= Transform.WorldPosition.Y + Transform.Size.Y) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    public virtual void MouseDown(MouseButton button) { }
+    public virtual void MouseUp(MouseButton button) { }
+    public virtual void MouseMove(Vector2 position) { }
+    public virtual void MouseEnter() { }
+    public virtual void MouseLeave() { }
+    public virtual void MouseDrag() { }
     
     protected virtual bool ShouldRender(SKCanvas canvas)
         => !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));

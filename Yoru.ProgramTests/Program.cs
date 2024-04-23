@@ -1,11 +1,42 @@
 ﻿#nullable disable
 
+using System.Numerics;
 using SkiaSharp;
 using Yoru.Elements;
 using Yoru.Input;
 using Yoru.Platforms.GL;
 
 namespace Yoru.ProgramTests;
+
+public class HoverBox : BoxElement {
+    private Vector2 mouseStart;
+    private SKColor selfColor;
+    private Vector2 snapPos;
+    
+    protected override void Load() {
+        base.Load();
+        selfColor = Color;
+    }
+    
+    public override void MouseDown(MouseButton button) {
+        if (button != MouseButton.Left) return;
+        base.MouseDown(button);
+        Color = SKColors.Red;
+        snapPos = Transform.WorldPosition;
+        mouseStart = App.Input.MousePosition;
+    }
+    
+    public override void MouseUp(MouseButton button) {
+        if (button != MouseButton.Left) return;
+        base.MouseUp(button);
+        Color = selfColor;
+    }
+    
+    public override void MouseDrag() {
+        base.MouseDrag();
+        Transform.WorldPosition = snapPos + App.Input.MousePosition - mouseStart;
+    }
+}
 
 public class GridTestApp : Application {
     public FillGridElement fillGrid = new() {
@@ -28,7 +59,7 @@ public class GridTestApp : Application {
     protected override void OnLoad() {
         base.OnLoad();
         for (var i = 0; i < 16; i++) {
-            grid.AddChild(new BoxElement {
+            grid.AddChild(new HoverBox {
                 Color = i % 2 == 0 ? SKColors.Red : SKColors.Green,
                 Transform = new() {
                     Size = new(100)
@@ -37,7 +68,7 @@ public class GridTestApp : Application {
         }
         
         for (var i = 0; i < 16; i++) {
-            fillGrid.AddChild(new BoxElement {
+            fillGrid.AddChild(new HoverBox {
                 Color = i % 2 == 0 ? SKColors.Orange : SKColors.Blue,
                 Transform = new() {
                     Size = new(100)
