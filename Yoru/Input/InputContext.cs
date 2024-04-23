@@ -33,6 +33,8 @@ public class InputContext(Application app) : AppContext(app) {
         
         foreach (var element in InputElements) {
             path++;
+            if (!element.MouseInteractions) continue;
+
             if (element.CheckMouseIntersect(position)) {
                 if (path > maxElementPath) {
                     maxElementPath = path;
@@ -52,7 +54,9 @@ public class InputContext(Application app) : AppContext(app) {
         }
         
         if (hoverElement == null || !MouseDownElements.Values.Any(list => list.Contains(hoverElement))) {
-            if (HoveredElements.Count > 1) hoverElement = maxElement;
+            if (HoveredElements.Count > 0) {
+                hoverElement = maxElement;
+            }
             else hoverElement = null;
         } else if (hoverElement != null) hoverElement.MouseDrag();
     }
@@ -111,7 +115,8 @@ public class InputContext(Application app) : AppContext(app) {
         _releasedButtons[button] = count + 1;
         
         hoverElement?.MouseUp(button);
-        MouseDownElements[button].Clear();
+        if (MouseDownElements.ContainsKey(button))
+            MouseDownElements[button].Clear();
 
         UpdateMousePosition(MousePosition);
     }

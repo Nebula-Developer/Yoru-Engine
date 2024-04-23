@@ -18,6 +18,7 @@ public class Element {
     
     private int _zIndex;
     public bool Cull { get; set; } = true;
+    public bool MouseInteractions { get; set; } = false;
     
     public Transform Transform {
         get {
