@@ -8,21 +8,26 @@
         <RootNamespace>Yoru</RootNamespace>
         <PackageId>Yoru</PackageId>
         <Authors>NebulaDev</Authors>
-        <Description>C# Graphics Engine for simplified and efficient software development</Description>
-        <PackageTags>Graphics, Engine, C#, Software, Development</PackageTags>
+        <Description>Flexible 2D game/application framework for crossplatform development</Description>
+        <PackageTags>graphics, audio, software, game, framework, crossplatform</PackageTags>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageProjectUrl>https://github.com/nebula-developer/yoru-engine</PackageProjectUrl>
         <RepositoryUrl>https://github.com/nebula-developer/yoru-engine</RepositoryUrl>
-        <Version>0.1.0</Version>
+        <Version>1.0.0-alpha</Version>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="opentk" Version="4.8.2"/>
-        <PackageReference Include="skiasharp" Version="2.88.7"/>
+        <PackageReference Include="OpenTK" Version="4.8.2"/>
+        <PackageReference Include="SkiaSharp" Version="2.88.7"/>
         <PackageReference Include="Topten.RichTextKit" Version="0.4.166"/>
 
+    </ItemGroup>
+
+    <ItemGroup>
         <None Include="..\README.md" Pack="true" PackagePath=""/>
+        <None Include="..\LICENSE" Pack="true" PackagePath=""/>
     </ItemGroup>
 
 </Project>

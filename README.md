@@ -1,11 +1,10 @@
 # 🌙 Yoru Engine
 
-### Flexible 2D game/application framework for straightfoward development
-
+### Flexible 2D game/application framework for crossplatform development
 
 ## About
 
-Yoru is a software development framework written in C#, designed for creating crosplatform apps and games. Backed by the capabilities of SkiaSharp, Yoru provides a direct approach towards developing scalable and production-ready software, that runs smoothly across [all platforms](#platforms). See the [example project](Yoru.Example/Program.cs) for a demonstration of Yoru's capabilities.
+Yoru is a software development framework written in C#, designed for creating crossplatform apps and games. Backed by the capabilities of SkiaSharp, Yoru provides a direct approach towards developing scalable and production-ready software, that runs smoothly across [all platforms](#platforms). See the [example project](Yoru.Example/Program.cs) for a demonstration of Yoru's capabilities.
 
 ### Structure
 
@@ -19,21 +18,26 @@ Yoru provides an abstract `Renderer` class, that allows a single SkiaSharp canva
 
 ### Platforms
 
-Yoru was designed with the goal of allowing a single C# project to run smoothly across common operating systems, without requiring platform-spesific code. Yoru utilises both [OpenTK](https://opentk.net/) and [.NET Maui](https://dotnet.microsoft.com/en-us/apps/maui) to provide native support for Window, macOS, Linux, iOS and Android, and bridges platform-spesific commands to a global interface for straightforward development.
+Yoru was designed with the goal of allowing a single C# project to run smoothly across common operating systems, without requiring platform-specific code. Yoru utilises both [OpenTK](https://opentk.net/) and [.NET Maui](https://dotnet.microsoft.com/en-us/apps/maui) to provide native support for Window, macOS, Linux, iOS and Android, and bridges platform-specific commands to a global interface for straightforward development.
 
-The following platforms are supported by Yoru:
+The following platforms are (planned to be) supported by Yoru:
 
-- Windows 10+
-- macOS 10.12+
+- [x] Windows 10+
+- [x] macOS 10.12+
+- [x] Linux (Ubuntu, Fedora, etc.)
+- [ ] iOS 11+
+- [ ] Android 5.0+
 
 ## Installation
 
 #### You may find the Nuget package [Here.](https://www.nuget.org/packages/Yoru)
 
 ### .NET CLI
+
 `dotnet add package Yoru --prerelease`
 
 ### Package Manager
+
 `NuGet\Install-Package Yoru -Version 0.1.0`
 
 ## Usage
