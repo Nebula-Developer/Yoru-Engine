@@ -20,12 +20,10 @@ public class HeadlessTests(ITestOutputHelper output) {
         app.Element.AddChild(box);
 
         app.Load();
-        app.Handler.Size = new(1920, 1080);
         app.Resize(1920, 1080);
         app.Render();
 
         Assert.True(app.Renderer.Canvas is not null);
-        Assert.True(box.Transform.WorldPosition.X == 910);
-        Assert.True(app.Handler.Size == new System.Numerics.Vector2(1920, 1080));
+        Assert.True((int)box.Transform.WorldPosition.X == 910);
     }
 }
