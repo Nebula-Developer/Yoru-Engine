@@ -15,7 +15,7 @@ public class Application {
     public bool ClearCanvas { get; set; } = true;
     public Renderer Renderer { get; set; } = new EmptyRenderer();
 
-    public Vector2 Size => Element.Transform.Size;
+    public Vector2 Size { get; private set; } = new();
     public SKCanvas AppCanvas => Renderer.Surface.Canvas;
     public float CanvasScale {
         get => _canvasScale;
@@ -79,13 +79,16 @@ public class Application {
         }
     }
 
-    public void ResizeRoot() => Element.ResizeSelf((int)(Handler.Size.X / CanvasScale), (int)(Handler.Size.Y / CanvasScale));
+    public void ResizeRoot() => Element.ResizeSelf((int)Size.X, (int)Size.Y);
 
-    public void Resize(int width, int height) {
+    public void Resize(int width, int height) { // Resizing as the actual window frame size, not handling the DPI
+        Size = new(width / CanvasScale, height / CanvasScale);
         lock (RenderLock) Renderer.Resize(width, height);
         ResizeRoot();
         OnResize(width, height);
     }
+
+    public void ResizeElement(int width, int height) => Resize((int)(width * CanvasScale), (int)(height * CanvasScale));
 
     public void KeyDown(Key key) { Input.HandleKeyDown(key); OnKeyDown(key); }
     public void KeyUp(Key key) { Input.HandleKeyUp(key); OnKeyUp(key); }

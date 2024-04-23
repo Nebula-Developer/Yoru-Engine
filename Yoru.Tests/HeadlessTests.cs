@@ -24,6 +24,7 @@ public class HeadlessTests(ITestOutputHelper output) {
         app.Render();
 
         Assert.True(app.Renderer.Canvas is not null);
-        Assert.True((int)box.Transform.WorldPosition.X == 910);
+        Assert.Equal(1920, app.Element.Transform.Size.X);
+        Assert.Equal(910, box.Transform.WorldPosition.X);
     }
 }
