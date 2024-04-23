@@ -36,10 +36,6 @@ The following platforms are (planned to be) supported by Yoru:
 
 `dotnet add package Yoru --prerelease`
 
-### Package Manager
-
-`NuGet\Install-Package Yoru -Version 0.1.0`
-
 ## Usage
 
 ### More information and/or a wiki will be added later. For an example project, see [the example project.](Yoru.Example/Program.cs)
