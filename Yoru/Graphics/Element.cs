@@ -41,6 +41,8 @@ public class Element {
             
             if (_transform.Element != this)
                 _transform.Element = this;
+            
+            TransformChanged();
         }
     }
     
@@ -136,6 +138,8 @@ public class Element {
     protected virtual void ChildAdded(Element child) { }
     protected virtual void ChildRemoved(Element child) { }
     protected virtual void RenderChildren(SKCanvas canvas) => ForChildren(child => child.RenderSelf(canvas));
+    
+    protected virtual void TransformChanged() { }
     
     protected virtual bool ShouldRender(SKCanvas canvas)
         => !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));

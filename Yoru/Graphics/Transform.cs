@@ -25,6 +25,7 @@ public class Transform {
                 _element.Transform = this;
             
             UpdateTransforms();
+            ElementChanged();
         }
     }
     
@@ -43,6 +44,8 @@ public class Transform {
         canvas.RotateDegrees(LocalRotation, rotationPos.X, rotationPos.Y);
         canvas.Translate(PivotPosition.X, PivotPosition.Y);
     }
+    
+    protected virtual void ElementChanged() { }
     
     #region Size
     
