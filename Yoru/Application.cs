@@ -8,10 +8,6 @@ using System.Numerics;
 
 namespace Yoru;
 
-public class CanvasRenderer {
-    
-}
-
 public class Application {
     public IApplicationHandler Handler { get; set; } = new HeadlessHandler();
     
@@ -19,11 +15,18 @@ public class Application {
     public bool ClearCanvas { get; set; } = true;
     public Renderer Renderer { get; set; } = new EmptyRenderer();
 
-    public CanvasContext ElementCanvasContext { get; protected set; }
+    public Vector2 Size => Element.Transform.Size;
     public SKCanvas AppCanvas => Renderer.Surface.Canvas;
+    public float CanvasScale {
+        get => _canvasScale;
+        set { _canvasScale = value; ResizeRoot(); }
+    }
+    private float _canvasScale = 1;
 
     public TimeContext UpdateTime { get; protected set; }
     public TimeContext RenderTime { get; protected set; }
+
+    public readonly object RenderLock = new();
 
     public InputContext Input { get; protected set; }
     public AnimationContext Animations { get; protected set; }
@@ -36,22 +39,10 @@ public class Application {
     }
     private RootElement _element;
 
-    public virtual void OnLoad() { }
-    public virtual void OnUpdate() { }
-    public virtual void OnRender() { }
-    public virtual void OnResize(int width, int height) { }
-    public virtual bool OnClose() => true;
-    public virtual void OnKeyDown(Key key) { }
-    public virtual void OnKeyUp(Key key) { }
-    public virtual void OnMouseDown(MouseButton button) { }
-    public virtual void OnMouseUp(MouseButton button) { }
-    public virtual void OnMouseMove(Vector2 position) { }
-
     public void Load() {
         Renderer.Load();
         Renderer.Resize((int)Handler.Size.X, (int)Handler.Size.Y);
 
-        ElementCanvasContext = new(this);
         Input = new(this);
         Animations = new(this);
 
@@ -67,51 +58,50 @@ public class Application {
     public void Update() {
         UpdateTime.Update();
         Animations.Update();
+
         Element.UpdateSelf();
         OnUpdate();
         Input.Update();
     }
 
     public void Render() {
-        RenderTime.Update();
-        if (ClearCanvas) ElementCanvasContext.Canvas.Clear(SKColors.Black);
-        Element.RenderSelf(ElementCanvasContext.Canvas);
-        OnRender();
-        if (FlushRenderer) Renderer.Flush();
+        lock (RenderLock) {
+            RenderTime.Update();
+
+            AppCanvas.ResetMatrix();
+            AppCanvas.Scale(CanvasScale);
+            if (ClearCanvas) AppCanvas.Clear(SKColors.Black);
+
+            Element.RenderSelf(AppCanvas);
+            OnRender();
+
+            if (FlushRenderer) Renderer.Flush();
+        }
     }
 
+    public void ResizeRoot() => Element.ResizeSelf((int)(Handler.Size.X / CanvasScale), (int)(Handler.Size.Y / CanvasScale));
+
     public void Resize(int width, int height) {
-        Renderer.Resize(width, height);
-        if (ElementCanvasContext.UseRendererCanvas) Element.ResizeSelf(width, height);
+        lock (RenderLock) Renderer.Resize(width, height);
+        ResizeRoot();
         OnResize(width, height);
     }
 
-    public void KeyDown(Key key) {
-        Input.HandleKeyDown(key);
-        OnKeyDown(key);
-    }
+    public void KeyDown(Key key) { Input.HandleKeyDown(key); OnKeyDown(key); }
+    public void KeyUp(Key key) { Input.HandleKeyUp(key); OnKeyUp(key); }
+    public void MouseDown(MouseButton button) { Input.HandleMouseDown(button); OnMouseDown(button); }
+    public void MouseUp(MouseButton button) { Input.HandleMouseUp(button); OnMouseUp(button); }
+    public void MouseMove(Vector2 position) { Input.UpdateMousePosition(position); OnMouseMove(position); }
+    public void Close() { if (OnClose()) Handler.Close(); }
 
-    public void KeyUp(Key key) {
-        Input.HandleKeyUp(key);
-        OnKeyUp(key);
-    }
-
-    public void MouseDown(MouseButton button) {
-        Input.HandleMouseDown(button);
-        OnMouseDown(button);
-    }
-
-    public void MouseUp(MouseButton button) {
-        Input.HandleMouseUp(button);
-        OnMouseUp(button);
-    }
-
-    public void MouseMove(Vector2 position) {
-        Input.UpdateMousePosition(position);
-        OnMouseMove(position);
-    }
-
-    public void Close() {
-        if (OnClose()) Handler.Close();
-    }
+    protected virtual void OnLoad() { }
+    protected virtual void OnUpdate() { }
+    protected virtual void OnRender() { }
+    protected virtual void OnResize(int width, int height) { }
+    protected virtual bool OnClose() => true;
+    protected virtual void OnKeyDown(Key key) { }
+    protected virtual void OnKeyUp(Key key) { }
+    protected virtual void OnMouseDown(MouseButton button) { }
+    protected virtual void OnMouseUp(MouseButton button) { }
+    protected virtual void OnMouseMove(Vector2 position) { }
 }

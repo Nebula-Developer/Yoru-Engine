@@ -41,7 +41,7 @@ public class EasingTestApp : Application {
         }
     };
 
-    public override void OnLoad() {
+    protected override void OnLoad() {
         base.OnLoad();
         Element.AddChild(box);
         Element.AddChild(progress);
