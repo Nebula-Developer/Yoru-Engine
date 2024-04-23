@@ -1,11 +1,9 @@
-
 namespace Yoru.Input;
 
 //
 // Summary:
 //     Specifies key codes and modifiers in US keyboard layout. Referenced from OpenTK.
-public enum Key
-{
+public enum Key {
     //
     // Summary:
     //     An unknown key.

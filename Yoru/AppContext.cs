@@ -1,4 +1,3 @@
-
 namespace Yoru;
 
 public class AppContext(Application app) {

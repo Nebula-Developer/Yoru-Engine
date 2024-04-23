@@ -16,13 +16,13 @@ public class HeadlessTests(ITestOutputHelper output) {
                 OffsetPosition = new(0.5f)
             }
         };
-
+        
         app.Element.AddChild(box);
-
+        
         app.Load();
         app.Resize(1920, 1080);
         app.Render();
-
+        
         Assert.True(app.Renderer.Canvas is not null);
         Assert.Equal(1920, app.Element.Transform.Size.X);
         Assert.Equal(910, box.Transform.WorldPosition.X);

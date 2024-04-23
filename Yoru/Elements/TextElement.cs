@@ -1,6 +1,4 @@
-
 using SkiaSharp;
-using Yoru.Graphics;
 
 namespace Yoru.Elements;
 
@@ -11,6 +9,11 @@ public enum TextAlignment {
 }
 
 public class TextElement : ColorableElement {
+    private string _text = "";
+    
+    public TextAlignment Alignment = TextAlignment.Left;
+    
+    public bool AutoResize = true;
     public float TextSize {
         get => Paint.TextSize;
         set {
@@ -19,14 +22,12 @@ public class TextElement : ColorableElement {
                 Transform.Size = new(Paint.MeasureText(Text), Paint.TextSize);
         }
     }
-
+    
     public SKTypeface Typeface {
         get => Paint.Typeface;
         set => Paint.Typeface = value;
     }
-
-    public bool AutoResize = true;
-
+    
     public string Text {
         get => _text;
         set {
@@ -35,10 +36,7 @@ public class TextElement : ColorableElement {
                 Transform.Size = new(Paint.MeasureText(_text), Paint.TextSize);
         }
     }
-    private string _text = "";
-
-    public TextAlignment Alignment = TextAlignment.Left;
-
+    
     protected override void Render(SKCanvas canvas) {
         float x = 0;
         switch (Alignment) {
@@ -49,7 +47,7 @@ public class TextElement : ColorableElement {
                 x = Transform.Size.X - Paint.MeasureText(Text);
                 break;
         }
-
+        
         canvas.DrawText(Text, x, Paint.TextSize, Paint);
     }
 }

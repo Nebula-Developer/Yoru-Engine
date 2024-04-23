@@ -1,4 +1,3 @@
-
 namespace Yoru.Graphics;
 
 public class CircularElementReferenceException()

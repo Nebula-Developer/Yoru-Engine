@@ -1,19 +1,19 @@
 namespace Yoru.Graphics;
 
 public class Animation {
-    public double Duration = 1f;
     public double Delay;
-    public double Progress;
-    public bool IsPlaying = true;
     
     public AnimationDirection Direction = AnimationDirection.Forward;
-    public AnimationLoopMode LoopMode = AnimationLoopMode.None;
+    public double Duration = 1f;
     public Func<double, double>? Easing;
-
+    public bool IsPlaying = true;
+    public AnimationLoopMode LoopMode = AnimationLoopMode.None;
+    
     public Action? OnComplete;
     public Action<double>? OnLoop;
     public Action<double>? OnUpdate;
-
+    public double Progress;
+    
     public void InvertDirection() {
         switch (LoopMode) {
             case AnimationLoopMode.Forward:
@@ -35,35 +35,37 @@ public class Animation {
                 OnComplete?.Invoke();
                 return;
         }
-
+        
         OnUpdate?.Invoke(Progress);
     }
-
+    
     public void Update(double dt) {
         if (!IsPlaying) return;
-
+        
         if (Delay > 0) {
             Delay -= dt;
             return;
-        } else if (Delay < 0) Delay = 0;
-
+        }
+        
+        if (Delay < 0) Delay = 0;
+        
         Progress += Direction == AnimationDirection.Forward ? dt : -dt;
-
-       if ((Direction == AnimationDirection.Forward && Progress >= Duration)
-        || (Direction == AnimationDirection.Backward && Progress <= 0)) {
-            int absDirection = Direction == AnimationDirection.Forward ? 1 : 0;
+        
+        if (Direction == AnimationDirection.Forward && Progress >= Duration
+         || Direction == AnimationDirection.Backward && Progress <= 0) {
+            var absDirection = Direction == AnimationDirection.Forward ? 1 : 0;
             OnLoop?.Invoke(absDirection);
             InvertDirection();
         }
-
+        
         var prog = Progress / Duration;
-
+        
         if (Direction == AnimationDirection.Backward && LoopMode == AnimationLoopMode.PingPong)
             // Invert the easing method
             OnUpdate?.Invoke(1 - Easing?.Invoke(1 - prog) ?? prog);
         else
             OnUpdate?.Invoke(Easing?.Invoke(prog) ?? prog);
     }
-
+    
     public virtual void Stop() { }
 }

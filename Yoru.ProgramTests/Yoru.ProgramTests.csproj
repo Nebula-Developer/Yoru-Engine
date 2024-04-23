@@ -8,9 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Yoru\Yoru.csproj" />
+        <ProjectReference Include="..\Yoru\Yoru.csproj"/>
     </ItemGroup>
-    
+
     <ItemGroup>
         <Content Include="Image.jpg">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
