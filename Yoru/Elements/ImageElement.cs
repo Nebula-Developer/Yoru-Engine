@@ -22,7 +22,7 @@ public class ImageElement : Element {
         }
     }
     
-    protected override void Render(SKCanvas canvas) {
+    protected override void OnRender(SKCanvas canvas) {
         if (Image != null)
             canvas.DrawImage(Image, new SKRect(0, 0, Transform.Size.X, Transform.Size.Y), Paint);
     }

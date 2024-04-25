@@ -79,18 +79,18 @@ public class FillGridElement : Element {
         }
     }
     
-    protected override void ChildAdded(Element child) {
-        base.ChildAdded(child);
+    protected override void OnChildAdded(Element child) {
+        base.OnChildAdded(child);
         RemapGrid();
     }
     
-    protected override void ChildRemoved(Element child) {
-        base.ChildRemoved(child);
+    protected override void OnChildRemoved(Element child) {
+        base.OnChildRemoved(child);
         RemapGrid();
     }
     
-    protected override void TransformChanged() {
-        base.TransformChanged();
+    protected override void OnTransformChanged() {
+        base.OnTransformChanged();
         Transform.ProcessSizeChanged += size => RemapGrid();
     }
 }

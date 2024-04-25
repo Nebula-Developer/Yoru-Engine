@@ -37,7 +37,7 @@ public class TextElement : ColorableElement {
         }
     }
     
-    protected override void Render(SKCanvas canvas) {
+    protected override void OnRender(SKCanvas canvas) {
         float x = 0;
         switch (Alignment) {
             case TextAlignment.Center:

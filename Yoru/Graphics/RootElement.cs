@@ -6,5 +6,5 @@ public class RootElement : Element {
         Transform.Size = app.Handler.Size;
     }
     
-    protected override void Resize(int width, int height) => Transform.Size = new(width, height);
+    protected override void OnResize(int width, int height) => Transform.Size = new(width, height);
 }

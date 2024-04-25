@@ -16,31 +16,30 @@ public class DraggableElement : Element {
     private Vector2 mouseStart;
     private Vector2 startPos;
 
-    protected override void Load() {
-        base.Load();
-        MouseInteractions = true;
+    protected override void OnLoad() {
+        base.OnLoad();
     }
 
-    public override bool MouseDown(MouseButton button) {
+    protected override bool OnMouseDown(MouseButton button) {
         if (button != Button) return true;
         curButton = Button;
-        base.MouseDown(button);
+        base.OnMouseDown(button);
         mouseStart = App.Input.MousePosition;
         startPos = Transform.WorldPosition;
         return false;
     }
 
-    public override bool MouseUp(MouseButton button) {
+    protected override bool OnMouseUp(MouseButton button) {
         if (curButton == null || button != curButton) return true;
         curButton = null;
-        base.MouseUp(button);
+        base.OnMouseUp(button);
         return false;
     }
 
-    public override void MouseDrag() {
+    protected override void OnMouseMove(Vector2 position) {
         if (curButton == null) return;
-        base.MouseDrag();
-        Transform.WorldPosition = startPos + App.Input.MousePosition - mouseStart;
+        base.OnMouseDrag();
+        Transform.WorldPosition = startPos + position - mouseStart;
     }
 }
 
@@ -49,61 +48,42 @@ public class HoverText : TextElement {
     private SKColor selfColor;
     private Vector2 snapPos;
     
-    protected override void Load() {
-        base.Load();
+    protected override void OnLoad() {
+        base.OnLoad();
         selfColor = Color;
-        MouseInteractions = true;
     }
 
     bool locker = false;
     
-    public override bool MouseDown(MouseButton button) {
+    protected override bool OnMouseDown(MouseButton button) {
         if (button != MouseButton.Left) return true;
         locker = true;
-        base.MouseDown(button);
+        base.OnMouseDown(button);
         Color = SKColors.Red;
         snapPos = Transform.WorldPosition;
         mouseStart = App.Input.MousePosition;
         return true;
     }
     
-    public override bool MouseUp(MouseButton button) {
+    protected override bool OnMouseUp(MouseButton button) {
         if (button != MouseButton.Left) return true;
         locker = false;
-        base.MouseUp(button);
+        base.OnMouseUp(button);
         Color = selfColor;
         return true;
     }
     
-    public override void MouseDrag() {
+    protected override void OnMouseDrag() {
         if (!locker) return;
-        base.MouseDrag();
+        base.OnMouseDrag();
         Transform.WorldPosition = snapPos + App.Input.MousePosition - mouseStart;
-    }
-}
-
-public class HoverBox : BoxElement {
-    protected override void Load() {
-        base.Load();
-        MouseInteractions = true;
-    }
-    SKColor oldColor;
-    public override void MouseEnter() {
-        base.MouseEnter();
-        oldColor = Color;
-        Color = SKColors.Magenta;
-    }
-
-    public override void MouseLeave() {
-        base.MouseLeave();
-        Color = oldColor;
     }
 }
 
 public class GridTestApp : Application {
     public FillGridElement fillGrid = new() {
-        RowSpacing = 10,
-        ColumnSpacing = 10,
+        RowSpacing = 3,
+        ColumnSpacing = 3,
         Transform = new() {
             ScaleWidth = true,
             ScaleHeight = true
@@ -129,39 +109,44 @@ public class GridTestApp : Application {
     
     protected override void OnLoad() {
         base.OnLoad();
-        for (var i = 0; i < 16; i++) {
-            grid.AddChild(new HoverBox {
-                Color = i % 2 == 0 ? SKColors.Red : SKColors.Green,
-                Transform = new() {
-                    Size = new(100)
-                }
-            });
-        }
         
-        for (var i = 0; i < 16; i++) {
-            float size = new Random().Next(50, 200);
+        for (var i = 0; i < 800; i++) {
+            float size = 5;
             DraggableElement draggable = new() {
                 Transform = new() {
                     Size = new(size)
                 }
             };
 
-            draggable.AddChild(new HoverBox {
-                Color = i % 2 == 0 ? SKColors.Blue : SKColors.Orange,
-                Transform = new() {
-                    Size = new(size)
-                }
-            });
+            // draggable.AddChild(new BoxElement {
+            //     Color = i % 2 == 0 ? SKColors.Blue : SKColors.Orange,
+            //     Transform = new() {
+            //         Size = new(size)
+            //     }
+            // });
 
-            draggable.AddChild(new HoverBox {
-                Color = i % 2 == 0 ? SKColors.Orange : SKColors.Blue,
+            SKColor innerBoxColor = i % 2 == 0 ? SKColors.Orange : SKColors.Blue;
+            BoxElement innerBox = new BoxElement {
+                Color = innerBoxColor,
                 Transform = new() {
-                    Size = new(size - 5),
+                    Size = new(size),
                     AnchorPosition = new(0.5f),
                     OffsetPosition = new(0.5f)
                 }
-            });
+            };
 
+            innerBox.DoMouseEnter = () => {
+                innerBox.Color = SKColors.Red;
+                innerBox.Transform.Size = new(size * 4f);
+                draggable.ZIndex = 999;
+            };
+            innerBox.DoMouseLeave = () => {
+                innerBox.Color = innerBoxColor;
+                innerBox.Transform.Size = new(size);
+                draggable.ZIndex = 0;
+            };
+
+            draggable.AddChild(innerBox);
             fillGrid.AddChild(draggable);
         }
         
