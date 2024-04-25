@@ -10,16 +10,16 @@ using Yoru.Platforms.GL;
 namespace Yoru.ProgramTests;
 
 public class DraggableElement : Element {
-    public MouseButton Button { get; set; } = MouseButton.Left;
     private MouseButton? curButton;
-
+    
     private Vector2 mouseStart;
     private Vector2 startPos;
-
+    public MouseButton Button { get; set; } = MouseButton.Left;
+    
     protected override void OnLoad() {
         base.OnLoad();
     }
-
+    
     protected override bool OnMouseDown(MouseButton button) {
         if (button != Button) return true;
         curButton = Button;
@@ -28,14 +28,14 @@ public class DraggableElement : Element {
         startPos = Transform.WorldPosition;
         return false;
     }
-
+    
     protected override bool OnMouseUp(MouseButton button) {
         if (curButton == null || button != curButton) return true;
         curButton = null;
         base.OnMouseUp(button);
         return false;
     }
-
+    
     protected override void OnMouseMove(Vector2 position) {
         if (curButton == null) return;
         base.OnMouseDrag();
@@ -44,6 +44,7 @@ public class DraggableElement : Element {
 }
 
 public class HoverText : TextElement {
+    private bool locker;
     private Vector2 mouseStart;
     private SKColor selfColor;
     private Vector2 snapPos;
@@ -52,8 +53,6 @@ public class HoverText : TextElement {
         base.OnLoad();
         selfColor = Color;
     }
-
-    bool locker = false;
     
     protected override bool OnMouseDown(MouseButton button) {
         if (button != MouseButton.Left) return true;
@@ -100,7 +99,7 @@ public class GridTestApp : Application {
     public HoverText text = new() {
         Transform = new() {
             AnchorPosition = new(0.5f),
-            OffsetPosition = new(0.5f)   
+            OffsetPosition = new(0.5f)
         },
         TextSize = 40,
         Color = SKColors.White,
@@ -117,16 +116,16 @@ public class GridTestApp : Application {
                     Size = new(size)
                 }
             };
-
+            
             // draggable.AddChild(new BoxElement {
             //     Color = i % 2 == 0 ? SKColors.Blue : SKColors.Orange,
             //     Transform = new() {
             //         Size = new(size)
             //     }
             // });
-
-            SKColor innerBoxColor = i % 2 == 0 ? SKColors.Orange : SKColors.Blue;
-            BoxElement innerBox = new BoxElement {
+            
+            var innerBoxColor = i % 2 == 0 ? SKColors.Orange : SKColors.Blue;
+            var innerBox = new BoxElement {
                 Color = innerBoxColor,
                 Transform = new() {
                     Size = new(size),
@@ -134,7 +133,7 @@ public class GridTestApp : Application {
                     OffsetPosition = new(0.5f)
                 }
             };
-
+            
             innerBox.DoMouseEnter = () => {
                 innerBox.Color = SKColors.Red;
                 innerBox.Transform.Size = new(size * 4f);
@@ -145,7 +144,7 @@ public class GridTestApp : Application {
                 innerBox.Transform.Size = new(size);
                 draggable.ZIndex = 0;
             };
-
+            
             draggable.AddChild(innerBox);
             fillGrid.AddChild(draggable);
         }

@@ -19,6 +19,7 @@ public class Application {
     public Renderer Renderer { get; set; } = new EmptyRenderer();
     
     public Vector2 Size { get; private set; }
+    public Vector2 FramebufferSize { get; private set; }
     public SKCanvas AppCanvas {
         get => Renderer.Surface.Canvas;
     }
@@ -26,7 +27,7 @@ public class Application {
         get => _canvasScale;
         set {
             _canvasScale = value;
-            ResizeRoot();
+            Resize((int)FramebufferSize.X, (int)FramebufferSize.Y, value);
         }
     }
     
@@ -88,9 +89,11 @@ public class Application {
     
     public void Resize(int width, int height, float canvasScale) { // Resizing as the actual window frame size, not handling the DPI
         _canvasScale = canvasScale;
-        Element.Resize((int)(width / CanvasScale), (int)(height / CanvasScale));
         
+        FramebufferSize = new(width, height);
         Size = new(width / CanvasScale, height / CanvasScale);
+        ResizeRoot();
+        
         lock (RenderLock) Renderer.Resize(width, height);
         OnResize(width, height);
     }

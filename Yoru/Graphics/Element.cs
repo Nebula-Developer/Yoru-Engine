@@ -88,6 +88,27 @@ public class Element : IDisposable {
         get => _children.AsReadOnly();
     }
     
+    public Action DoUpdate { get; set; }
+    public Action<SKCanvas> DoRender { get; set; }
+    public Action<int, int> DoResize { get; set; }
+    public Action DoLoad { get; set; }
+    public Action DoUnload { get; set; }
+    
+    public Action<MouseButton> DoMouseDown { get; set; }
+    public Action<MouseButton> DoMouseUp { get; set; }
+    public Action<Vector2> DoMouseMove { get; set; }
+    public Action DoMouseEnter { get; set; }
+    public Action DoMouseLeave { get; set; }
+    public Action DoMouseDrag { get; set; }
+    
+    public Action DoChildAdded { get; set; }
+    public Action DoChildRemoved { get; set; }
+    public Action DoTransformChanged { get; set; }
+    public void Dispose() {
+        Unload();
+        GC.SuppressFinalize(this);
+    }
+    
     private bool HasCircularReference(Element potentialParent) {
         if (potentialParent == null)
             return false;
@@ -135,41 +156,24 @@ public class Element : IDisposable {
         if (child.Parent == this)
             child.Parent = null;
     }
-
+    
     protected virtual void OnUpdate() { }
     protected virtual void OnRender(SKCanvas canvas) { }
     protected virtual void OnResize(int width, int height) { }
     protected virtual void OnLoad() { }
     protected virtual void OnUnload() { }
-    protected virtual void OnRenderChildren(SKCanvas canvas) => ForChildren(child => child.Render(canvas));    
+    protected virtual void OnRenderChildren(SKCanvas canvas) => ForChildren(child => child.Render(canvas));
     
-    public Action DoUpdate { get; set; }
-    public Action<SKCanvas> DoRender { get; set; }
-    public Action<int, int> DoResize { get; set; }
-    public Action DoLoad { get; set; }
-    public Action DoUnload { get; set; }
-
     protected virtual bool OnMouseDown(MouseButton button) => true;
     protected virtual bool OnMouseUp(MouseButton button) => true;
     protected virtual void OnMouseMove(Vector2 position) { }
     protected virtual void OnMouseEnter() { }
     protected virtual void OnMouseLeave() { }
     protected virtual void OnMouseDrag() { }
-
-    public Action<MouseButton> DoMouseDown { get; set; }
-    public Action<MouseButton> DoMouseUp { get; set; }
-    public Action<Vector2> DoMouseMove { get; set; }
-    public Action DoMouseEnter { get; set; }
-    public Action DoMouseLeave { get; set; }
-    public Action DoMouseDrag { get; set; }
     
     protected virtual void OnChildAdded(Element child) { }
     protected virtual void OnChildRemoved(Element child) { }
     protected virtual void OnTransformChanged() { }
-
-    public Action DoChildAdded { get; set; }
-    public Action DoChildRemoved { get; set; }
-    public Action DoTransformChanged { get; set; }
     
     public virtual bool PointIntersects(Vector2 position) {
         if (Transform.Size.X == 0 || Transform.Size.Y == 0) return false;
@@ -190,7 +194,7 @@ public class Element : IDisposable {
             App.Input.HandleElementEnter(this);
         else
             App.Input.HandleElementLeave(this);
-
+        
         OnUpdate();
         DoUpdate?.Invoke();
         ForChildren(child => child.Update());
@@ -216,18 +220,18 @@ public class Element : IDisposable {
         DoResize?.Invoke(width, height);
         ForChildren(child => child.Resize(width, height));
     }
-
+    
     private static T ReturnVirtualPair<T>(Func<T> func, Action action) {
-        T result = func();
+        var result = func();
         action?.Invoke();
         return result;
     }
-
+    
     private static void InvokeVirtualPair(Action method, Action action) {
         method?.Invoke();
         action?.Invoke();
     }
-
+    
     public void Load() => InvokeVirtualPair(OnLoad, DoLoad);
     public bool MouseDown(MouseButton button) => ReturnVirtualPair(() => OnMouseDown(button), () => DoMouseDown?.Invoke(button));
     public bool MouseUp(MouseButton button) => ReturnVirtualPair(() => OnMouseUp(button), () => DoMouseUp?.Invoke(button));
@@ -238,10 +242,6 @@ public class Element : IDisposable {
     public void ChildAdded(Element child) => InvokeVirtualPair(() => OnChildAdded(child), DoChildAdded);
     public void ChildRemoved(Element child) => InvokeVirtualPair(() => OnChildRemoved(child), DoChildRemoved);
     public void TransformChanged() => InvokeVirtualPair(OnTransformChanged, DoTransformChanged);
-
+    
     public void Unload() => InvokeVirtualPair(OnUnload, DoUnload);
-    public void Dispose() {
-        Unload();
-        GC.SuppressFinalize(this);
-    }
 }

@@ -56,7 +56,7 @@ public class FillGridElement : Element {
         float y = 0;
         float maxWidth = 0;
         float maxHeight = 0;
-
+        
         foreach (var child in Children) {
             child.Transform.LocalPosition = new(x, y);
             if (child.Transform.Size.X > maxWidth) maxWidth = child.Transform.Size.X;
