@@ -41,12 +41,15 @@ The following platforms are (planned to be) supported by Yoru:
 You may encounter missing library issues on Linux, usually for [fontconfig](https://www.freedesktop.org/wiki/Software/fontconfig/). You should be able to find the development package for your distribution, otherwise you may use the following commands:
 
 #### Debian
+
 `sudo apt install libfontconfig-dev`
 
 #### Arch
+
 `sudo pacman -S fontconfig`
 
 #### Fedora
+
 `sudo dnf install fontconfig-devel`
 
 ## Usage
