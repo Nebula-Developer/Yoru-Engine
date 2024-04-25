@@ -85,12 +85,16 @@ public class Application {
     
     public void ResizeRoot() => Element.ResizeSelf((int)Size.X, (int)Size.Y);
     
-    public void Resize(int width, int height) { // Resizing as the actual window frame size, not handling the DPI
+    public void Resize(int width, int height, float canvasScale) { // Resizing as the actual window frame size, not handling the DPI
+        _canvasScale = canvasScale;
+        Element.ResizeSelf(width, height);
+        
         Size = new(width / CanvasScale, height / CanvasScale);
         lock (RenderLock) Renderer.Resize(width, height);
-        ResizeRoot();
         OnResize(width, height);
     }
+
+    public void Resize(int width, int height) => Resize(width, height, CanvasScale);
     
     public void ResizeElement(int width, int height) => Resize((int)(width * CanvasScale), (int)(height * CanvasScale));
     

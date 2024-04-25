@@ -26,10 +26,10 @@ public class InputContext(Application app) : AppContext(app) {
     // TODO: Make this all more efficient
     public void UpdateMousePosition(Vector2 position) {
         MousePosition = position;
-
-        int maxElementPath = 0;
+        
+        var maxElementPath = 0;
         Element maxElement = null;
-        int path = 0;
+        var path = 0;
         
         foreach (var element in InputElements) {
             path++;
@@ -112,7 +112,7 @@ public class InputContext(Application app) : AppContext(app) {
         
         hoverElement?.MouseUp(button);
         MouseDownElements[button].Clear();
-
+        
         UpdateMousePosition(MousePosition);
     }
     

@@ -29,16 +29,13 @@ public class GLWindow : GameWindow, IApplicationHandler {
         App.Renderer = Renderer;
         Renderer.GLContext = Context;
         
+        App.CanvasScale = FramebufferSize.X / base.Size.X;
         App.Load();
     }
     
     protected override void OnRenderFrame(FrameEventArgs args) => App.Render();
     protected override void OnUpdateFrame(FrameEventArgs args) => App.Update();
-    protected override void OnFramebufferResize(FramebufferResizeEventArgs e) {
-        float dpi = FramebufferSize.X / base.Size.X;
-        App.CanvasScale = dpi;
-        App.Resize(e.Width, e.Height);
-    }
+    protected override void OnFramebufferResize(FramebufferResizeEventArgs e) => App.Resize(e.Width, e.Height, FramebufferSize.X / base.Size.X);
     
     protected override void OnKeyDown(KeyboardKeyEventArgs e) {
         if (e.IsRepeat) return;
