@@ -60,12 +60,13 @@ public class Application {
     }
     
     public void Update() {
+        Input.Update();
         UpdateTime.Update();
         Animations.Update();
         
         Element.UpdateSelf();
         OnUpdate();
-        Input.Update();
+        Input.UpdateCollections();
     }
     
     public void Render() {
