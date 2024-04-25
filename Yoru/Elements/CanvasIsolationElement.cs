@@ -20,24 +20,24 @@ public class CanvasIsolationElement : Element {
         Surface = SKSurface.Create(new SKImageInfo((int)Transform.Size.X, (int)Transform.Size.Y));
     }
     
-    protected override void TransformChanged() {
-        base.TransformChanged();
+    protected override void OnTransformChanged() {
+        base.OnTransformChanged();
         Transform.ProcessSizeChanged += size => ResizeSurface();
     }
     
-    protected override void Load() {
-        base.Load();
+    protected override void OnLoad() {
+        base.OnLoad();
         ResizeSurface();
     }
     
-    protected override void RenderChildren(SKCanvas canvas) {
+    protected override void OnRenderChildren(SKCanvas canvas) {
         if (Passthrough) {
-            base.RenderChildren(canvas);
+            base.OnRenderChildren(canvas);
             return;
         }
         
         if (ClearCanvas) Canvas.Clear();
-        ForChildren(child => child.RenderSelf(Canvas));
+        ForChildren(child => child.Render(Canvas));
         if (RenderCanvas) canvas.DrawSurface(Surface, 0, 0);
     }
 }

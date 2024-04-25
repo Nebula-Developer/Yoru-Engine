@@ -64,7 +64,7 @@ public class Application {
         UpdateTime.Update();
         Animations.Update();
         
-        Element.UpdateSelf();
+        Element.Update();
         OnUpdate();
         Input.UpdateCollections();
     }
@@ -77,18 +77,18 @@ public class Application {
             AppCanvas.Scale(CanvasScale);
             if (ClearCanvas) AppCanvas.Clear(SKColors.Black);
             
-            Element.RenderSelf(AppCanvas);
+            Element.Render(AppCanvas);
             OnRender();
             
             if (FlushRenderer) Renderer.Flush();
         }
     }
     
-    public void ResizeRoot() => Element.ResizeSelf((int)Size.X, (int)Size.Y);
+    public void ResizeRoot() => Element.Resize((int)Size.X, (int)Size.Y);
     
     public void Resize(int width, int height, float canvasScale) { // Resizing as the actual window frame size, not handling the DPI
         _canvasScale = canvasScale;
-        Element.ResizeSelf(width, height);
+        Element.Resize((int)(width / CanvasScale), (int)(height / CanvasScale));
         
         Size = new(width / CanvasScale, height / CanvasScale);
         lock (RenderLock) Renderer.Resize(width, height);

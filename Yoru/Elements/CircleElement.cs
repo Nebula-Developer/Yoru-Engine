@@ -8,6 +8,6 @@ public class CircleElement : ColorableElement {
         set => Transform.Size = new(value);
     }
     
-    protected override void Render(SKCanvas canvas)
+    protected override void OnRender(SKCanvas canvas)
         => canvas.DrawCircle(Radius / 2, Radius / 2, Radius / 2, Paint);
 }

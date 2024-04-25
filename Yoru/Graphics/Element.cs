@@ -6,7 +6,7 @@ using Yoru.Input;
 
 namespace Yoru.Graphics;
 
-public class Element {
+public class Element : IDisposable {
     private readonly List<Element> _children = new();
     
     private Application _app;
@@ -18,7 +18,6 @@ public class Element {
     
     private int _zIndex;
     public bool Cull { get; set; } = true;
-    public bool MouseInteractions { get; set; } = false;
     
     public Transform Transform {
         get {
@@ -137,25 +136,42 @@ public class Element {
             child.Parent = null;
     }
 
-    protected virtual void Update() { }
-    protected virtual void Resize(int width, int height) { }
-    protected virtual void Load() { }
+    protected virtual void OnUpdate() { }
+    protected virtual void OnRender(SKCanvas canvas) { }
+    protected virtual void OnResize(int width, int height) { }
+    protected virtual void OnLoad() { }
+    protected virtual void OnUnload() { }
+    protected virtual void OnRenderChildren(SKCanvas canvas) => ForChildren(child => child.Render(canvas));    
+    
+    public Action DoUpdate { get; set; }
+    public Action<SKCanvas> DoRender { get; set; }
+    public Action<int, int> DoResize { get; set; }
+    public Action DoLoad { get; set; }
+    public Action DoUnload { get; set; }
 
-    public virtual bool MouseDown(MouseButton button) => true;
-    public virtual bool MouseUp(MouseButton button) => true;
-    public virtual void MouseMove(Vector2 position) { }
-    public virtual void MouseEnter() { }
-    public virtual void MouseLeave() { }
-    public virtual void MouseDrag() { }
+    protected virtual bool OnMouseDown(MouseButton button) => true;
+    protected virtual bool OnMouseUp(MouseButton button) => true;
+    protected virtual void OnMouseMove(Vector2 position) { }
+    protected virtual void OnMouseEnter() { }
+    protected virtual void OnMouseLeave() { }
+    protected virtual void OnMouseDrag() { }
+
+    public Action<MouseButton> DoMouseDown { get; set; }
+    public Action<MouseButton> DoMouseUp { get; set; }
+    public Action<Vector2> DoMouseMove { get; set; }
+    public Action DoMouseEnter { get; set; }
+    public Action DoMouseLeave { get; set; }
+    public Action DoMouseDrag { get; set; }
     
-    protected virtual void Render(SKCanvas canvas) { }
-    protected virtual void ChildAdded(Element child) { }
-    protected virtual void ChildRemoved(Element child) { }
-    protected virtual void RenderChildren(SKCanvas canvas) => ForChildren(child => child.RenderSelf(canvas));
+    protected virtual void OnChildAdded(Element child) { }
+    protected virtual void OnChildRemoved(Element child) { }
+    protected virtual void OnTransformChanged() { }
+
+    public Action DoChildAdded { get; set; }
+    public Action DoChildRemoved { get; set; }
+    public Action DoTransformChanged { get; set; }
     
-    protected virtual void TransformChanged() { }
-    
-    public virtual bool CheckMouseIntersect(Vector2 position) {
+    public virtual bool PointIntersects(Vector2 position) {
         if (Transform.Size.X == 0 || Transform.Size.Y == 0) return false;
         
         if (position.X >= Transform.WorldPosition.X && position.X <= Transform.WorldPosition.X + Transform.Size.X &&
@@ -169,33 +185,63 @@ public class Element {
     protected virtual bool ShouldRender(SKCanvas canvas)
         => !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
     
-    public void RenderSelf(SKCanvas canvas) {
+    public void Update() {
+        if (PointIntersects(App.Input.MousePosition))
+            App.Input.HandleElementEnter(this);
+        else
+            App.Input.HandleElementLeave(this);
+
+        OnUpdate();
+        DoUpdate?.Invoke();
+        ForChildren(child => child.Update());
+    }
+    
+    public void Render(SKCanvas canvas) {
         if (App == null) return;
         
         var count = canvas.Save();
         Transform.ApplyToCanvas(canvas);
         
-        if (!Cull || ShouldRender(canvas))
-            Render(canvas);
+        if (!Cull || ShouldRender(canvas)) {
+            OnRender(canvas);
+            DoRender?.Invoke(canvas);
+        }
         
-        RenderChildren(canvas);
+        OnRenderChildren(canvas);
         canvas.RestoreToCount(count);
     }
     
-    public void UpdateSelf() {
-        if (MouseInteractions) {
-            if (CheckMouseIntersect(App.Input.MousePosition))
-                App.Input.HandleElementEnter(this);
-            else
-                App.Input.HandleElementLeave(this);
-        }
-
-        Update();
-        ForChildren(child => child.UpdateSelf());
+    public void Resize(int width, int height) {
+        OnResize(width, height);
+        DoResize?.Invoke(width, height);
+        ForChildren(child => child.Resize(width, height));
     }
-    
-    public void ResizeSelf(int width, int height) {
-        Resize(width, height);
-        ForChildren(child => child.ResizeSelf(width, height));
+
+    private static T ReturnVirtualPair<T>(Func<T> func, Action action) {
+        T result = func();
+        action?.Invoke();
+        return result;
+    }
+
+    private static void InvokeVirtualPair(Action method, Action action) {
+        method?.Invoke();
+        action?.Invoke();
+    }
+
+    public void Load() => InvokeVirtualPair(OnLoad, DoLoad);
+    public bool MouseDown(MouseButton button) => ReturnVirtualPair(() => OnMouseDown(button), () => DoMouseDown?.Invoke(button));
+    public bool MouseUp(MouseButton button) => ReturnVirtualPair(() => OnMouseUp(button), () => DoMouseUp?.Invoke(button));
+    public void MouseMove(Vector2 position) => InvokeVirtualPair(() => OnMouseMove(position), () => DoMouseMove?.Invoke(position));
+    public void MouseEnter() => InvokeVirtualPair(OnMouseEnter, DoMouseEnter);
+    public void MouseLeave() => InvokeVirtualPair(OnMouseLeave, DoMouseLeave);
+    public void MouseDrag() => InvokeVirtualPair(OnMouseDrag, DoMouseDrag);
+    public void ChildAdded(Element child) => InvokeVirtualPair(() => OnChildAdded(child), DoChildAdded);
+    public void ChildRemoved(Element child) => InvokeVirtualPair(() => OnChildRemoved(child), DoChildRemoved);
+    public void TransformChanged() => InvokeVirtualPair(OnTransformChanged, DoTransformChanged);
+
+    public void Unload() => InvokeVirtualPair(OnUnload, DoUnload);
+    public void Dispose() {
+        Unload();
+        GC.SuppressFinalize(this);
     }
 }
