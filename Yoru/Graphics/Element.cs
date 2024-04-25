@@ -18,6 +18,7 @@ public class Element {
     
     private int _zIndex;
     public bool Cull { get; set; } = true;
+    public bool MouseInteractions { get; set; } = false;
     
     public Transform Transform {
         get {
@@ -51,13 +52,6 @@ public class Element {
     protected Application App {
         get => _app;
         set {
-            if (_app != value) {
-                if (_app != null && _app.Input != null)
-                    _app.Input.InputElements.Remove(this);
-                if (value != null && value.Input != null)
-                    value.Input.InputElements.Add(this);
-            }
-            
             _app = value;
             ForChildren(child => {
                 if (child.App != value)
@@ -134,15 +128,25 @@ public class Element {
     }
     
     public void RemoveChild(Element child) {
-        _children.Remove(child);
-        ChildRemoved(child);
+        if (_children.Contains(child)) {
+            _children.Remove(child);
+            ChildRemoved(child);
+        }
+        
         if (child.Parent == this)
             child.Parent = null;
     }
-    
+
     protected virtual void Update() { }
     protected virtual void Resize(int width, int height) { }
     protected virtual void Load() { }
+
+    public virtual bool MouseDown(MouseButton button) => true;
+    public virtual bool MouseUp(MouseButton button) => true;
+    public virtual void MouseMove(Vector2 position) { }
+    public virtual void MouseEnter() { }
+    public virtual void MouseLeave() { }
+    public virtual void MouseDrag() { }
     
     protected virtual void Render(SKCanvas canvas) { }
     protected virtual void ChildAdded(Element child) { }
@@ -162,13 +166,6 @@ public class Element {
         return false;
     }
     
-    public virtual void MouseDown(MouseButton button) { }
-    public virtual void MouseUp(MouseButton button) { }
-    public virtual void MouseMove(Vector2 position) { }
-    public virtual void MouseEnter() { }
-    public virtual void MouseLeave() { }
-    public virtual void MouseDrag() { }
-    
     protected virtual bool ShouldRender(SKCanvas canvas)
         => !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
     
@@ -186,6 +183,13 @@ public class Element {
     }
     
     public void UpdateSelf() {
+        if (MouseInteractions) {
+            if (CheckMouseIntersect(App.Input.MousePosition))
+                App.Input.HandleElementEnter(this);
+            else
+                App.Input.HandleElementLeave(this);
+        }
+
         Update();
         ForChildren(child => child.UpdateSelf());
     }

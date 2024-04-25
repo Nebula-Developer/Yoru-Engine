@@ -10,54 +10,21 @@ public class InputContext(Application app) : AppContext(app) {
     private readonly Dictionary<Key, int> _pressedKeys = new();
     private readonly Dictionary<MouseButton, int> _releasedButtons = new();
     private readonly Dictionary<Key, int> _releasedKeys = new();
-    private Element hoverElement;
     
     public HashSet<Key> Keys { get; } = new();
     public HashSet<MouseButton> Buttons { get; } = new();
     public Vector2 MousePosition { get; private set; }
     
-    public List<Element> InputElements { get; } = new();
-    private List<Element> HoveredElements { get; } = new();
-    private Dictionary<MouseButton, List<Element>> MouseDownElements { get; } = new();
-    private bool MouseDown {
-        get => Buttons.Count > 0;
-    }
-    
-    // TODO: Make this all more efficient
-    public void UpdateMousePosition(Vector2 position) {
-        MousePosition = position;
-        
-        var maxElementPath = 0;
-        Element maxElement = null;
-        var path = 0;
-        
-        foreach (var element in InputElements) {
-            path++;
-            if (element.CheckMouseIntersect(position)) {
-                if (path > maxElementPath) {
-                    maxElementPath = path;
-                    maxElement = element;
-                }
-                
-                if (!HoveredElements.Contains(element)) {
-                    HoveredElements.Add(element);
-                    element.MouseEnter();
-                }
-            } else {
-                if (HoveredElements.Contains(element)) {
-                    HoveredElements.Remove(element);
-                    element.MouseLeave();
-                }
-            }
-        }
-        
-        if (hoverElement == null || !MouseDownElements.Values.Any(list => list.Contains(hoverElement))) {
-            if (HoveredElements.Count > 1) hoverElement = maxElement;
-            else hoverElement = null;
-        } else if (hoverElement != null) hoverElement.MouseDrag();
-    }
-    
+    private List<Element> HoveredElements = new(); // Elements that are under the mouse currently
+    private List<Element> OldHoveredElements = new();
+    private List<Element> PressedElements = new(); // Elements that were under the mouse when it was pressed
+
     public void Update() {
+        OldHoveredElements = HoveredElements.ToList();
+        HoveredElements.Clear();
+    }
+    
+    public void UpdateCollections() {
         UpdateCollection(_pressedKeys);
         UpdateCollection(_releasedKeys);
         UpdateCollection(_pressedButtons);
@@ -76,6 +43,28 @@ public class InputContext(Application app) : AppContext(app) {
         
         keysToRemove.ForEach(key => collection.Remove(key));
     }
+
+    public void UpdateMousePosition(Vector2 position) {
+        MousePosition = position;
+        for (var i = HoveredElements.Count - 1; i >= 0; i--) {
+            var element = HoveredElements[i];
+            element.MouseMove(position);
+            if (Buttons.Count > 0)
+                element.MouseDrag();
+        }
+    }
+
+    public void HandleElementEnter(Element element) {
+        HoveredElements.Insert(0, element);
+        if (!OldHoveredElements.Contains(element))
+            element.MouseEnter();
+    }
+
+    public void HandleElementLeave(Element element) {
+        HoveredElements.Remove(element);
+        if (OldHoveredElements.Contains(element))
+            element.MouseLeave();
+    }
     
     public void HandleKeyDown(Key key) {
         Keys.Add(key);
@@ -93,16 +82,11 @@ public class InputContext(Application app) : AppContext(app) {
         Buttons.Add(button);
         _pressedButtons.TryGetValue(button, out var count);
         _pressedButtons[button] = count + 1;
-        
-        foreach (var element in HoveredElements) {
-            if (!MouseDownElements.ContainsKey(button))
-                MouseDownElements[button] = new();
-            
-            if (!MouseDownElements[button].Contains(element))
-                MouseDownElements[button].Add(element);
-        }
-        
-        hoverElement?.MouseDown(button);
+
+        foreach (var element in HoveredElements)
+            if (!element.MouseDown(button)) break;
+
+        PressedElements = HoveredElements.ToList();
     }
     
     public void HandleMouseUp(MouseButton button) {
@@ -110,10 +94,8 @@ public class InputContext(Application app) : AppContext(app) {
         _releasedButtons.TryGetValue(button, out var count);
         _releasedButtons[button] = count + 1;
         
-        hoverElement?.MouseUp(button);
-        MouseDownElements[button].Clear();
-        
-        UpdateMousePosition(MousePosition);
+        foreach (var element in PressedElements)
+            if (!element.MouseUp(button)) break;
     }
     
     public bool GetKey(Key key) => Keys.Contains(key);
