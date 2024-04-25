@@ -93,7 +93,7 @@ public class Application {
         lock (RenderLock) Renderer.Resize(width, height);
         OnResize(width, height);
     }
-
+    
     public void Resize(int width, int height) => Resize(width, height, CanvasScale);
     
     public void ResizeElement(int width, int height) => Resize((int)(width * CanvasScale), (int)(height * CanvasScale));

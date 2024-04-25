@@ -19,15 +19,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenTK" Version="4.8.2" />
-        <PackageReference Include="SkiaSharp" Version="2.88.8" />
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.8" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
-        <PackageReference Include="Topten.RichTextKit" Version="0.4.166" />
+        <PackageReference Include="OpenTK" Version="4.8.2"/>
+        <PackageReference Include="SkiaSharp" Version="2.88.8"/>
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.8" Condition="$([MSBuild]::IsOSPlatform('Linux'))"/>
+        <PackageReference Include="Topten.RichTextKit" Version="0.4.166"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\README.md" Pack="true" PackagePath="" />
-        <None Include="..\LICENSE" Pack="true" PackagePath="" />
+        <None Include="..\README.md" Pack="true" PackagePath=""/>
+        <None Include="..\LICENSE" Pack="true" PackagePath=""/>
     </ItemGroup>
 
 </Project>
