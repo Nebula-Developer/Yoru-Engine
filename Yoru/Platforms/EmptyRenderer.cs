@@ -8,6 +8,8 @@ namespace Yoru.Platforms;
 public class EmptyRenderer : Renderer {
     public override void Resize(int width, int height) {
         base.Resize(width, height);
+        width = Math.Max(1, width);
+        height = Math.Max(1, height);
         _surface?.Dispose();
         _surface = SKSurface.Create(new SKImageInfo(width, height));
     }

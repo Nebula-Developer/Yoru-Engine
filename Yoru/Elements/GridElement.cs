@@ -10,12 +10,15 @@ public class GridElement : Element {
     private int _maxColumns = 1;
     private int _maxRows = 1;
     private float _rowSpacing;
+
+    public bool AutoRemap = true;
+
     public int MaxRows {
         get => _maxRows;
         set {
             if (_maxRows == value) return;
             _maxRows = Math.Max(1, value);
-            RemapGrid();
+            if (AutoRemap) RemapGrid();
         }
     }
     
@@ -24,7 +27,7 @@ public class GridElement : Element {
         set {
             if (_maxColumns == value) return;
             _maxColumns = Math.Max(1, value);
-            RemapGrid();
+            if (AutoRemap) RemapGrid();
         }
     }
     
@@ -33,7 +36,7 @@ public class GridElement : Element {
         set {
             if (_elementWidth == value) return;
             _elementWidth = Math.Max(0, value);
-            RemapGrid();
+            if (AutoRemap) RemapGrid();
         }
     }
     
@@ -42,7 +45,7 @@ public class GridElement : Element {
         set {
             if (_elementHeight == value) return;
             _elementHeight = Math.Max(0, value);
-            RemapGrid();
+            if (AutoRemap) RemapGrid();
         }
     }
     
@@ -51,7 +54,7 @@ public class GridElement : Element {
         set {
             if (_rowSpacing == value) return;
             _rowSpacing = value;
-            RemapGrid();
+            if (AutoRemap) RemapGrid();
         }
     }
     
@@ -60,7 +63,7 @@ public class GridElement : Element {
         set {
             if (_columnSpacing == value) return;
             _columnSpacing = value;
-            RemapGrid();
+            if (AutoRemap) RemapGrid();
         }
     }
     
@@ -69,7 +72,7 @@ public class GridElement : Element {
         set {
             if (_flowDirection == value) return;
             _flowDirection = value;
-            RemapGrid();
+            if (AutoRemap) RemapGrid();
         }
     }
     
@@ -96,11 +99,11 @@ public class GridElement : Element {
     
     protected override void OnChildAdded(Element child) {
         base.OnChildAdded(child);
-        RemapGrid();
+        if (AutoRemap) RemapGrid();
     }
     
     protected override void OnChildRemoved(Element child) {
         base.OnChildRemoved(child);
-        RemapGrid();
+        if (AutoRemap) RemapGrid();
     }
 }

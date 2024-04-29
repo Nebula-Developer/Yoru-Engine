@@ -1,6 +1,8 @@
 ﻿#nullable disable
 
+using System.Drawing;
 using System.Numerics;
+using System.Runtime.ExceptionServices;
 using SkiaSharp;
 using Yoru.Elements;
 using Yoru.Graphics;
@@ -38,7 +40,7 @@ public class DraggableElement : Element {
     
     protected override void OnMouseMove(Vector2 position) {
         if (curButton == null) return;
-        base.OnMouseDrag();
+        base.OnMouseMove(position);
         Transform.WorldPosition = startPos + position - mouseStart;
     }
 }
@@ -71,103 +73,60 @@ public class HoverText : TextElement {
         Color = selfColor;
         return true;
     }
-    
-    protected override void OnMouseDrag() {
-        if (!locker) return;
-        base.OnMouseDrag();
-        Transform.WorldPosition = snapPos + App.Input.MousePosition - mouseStart;
-    }
 }
 
 public class GridTestApp : Application {
-    public FillGridElement fillGrid = new() {
-        RowSpacing = 3,
-        ColumnSpacing = 3,
+    public Element fillGrid = new() {
         Transform = new() {
-            ScaleWidth = true,
-            ScaleHeight = true
+            Size = new(500),
+            OffsetPosition = new(0.5f),
+            AnchorPosition = new(0.5f)
         }
-    };
-    public GridElement grid = new() {
-        MaxRows = 4,
-        MaxColumns = 4,
-        RowSpacing = 10,
-        ColumnSpacing = 10,
-        ElementWidth = 100,
-        ElementHeight = 100
-    };
-    public HoverText text = new() {
-        Transform = new() {
-            AnchorPosition = new(0.5f),
-            OffsetPosition = new(0.5f)
-        },
-        TextSize = 40,
-        Color = SKColors.White,
-        Text = "Hello"
     };
     
     protected override void OnLoad() {
         base.OnLoad();
         
-        for (var i = 0; i < 800; i++) {
-            float size = 5;
+        for (var i = 0; i < 50; i++) {
+            int inverseI = 50 - i;
             DraggableElement draggable = new() {
                 Transform = new() {
-                    Size = new(size)
-                }
+                    Size = new(i * 10),
+                    OffsetPosition = new(0.5f),
+                    AnchorPosition = new(0.5f),
+                    RotationOffset = new(0.5f)
+                },
+                ZIndex = inverseI,
+                ClickThrough = true
             };
             
-            // draggable.AddChild(new BoxElement {
-            //     Color = i % 2 == 0 ? SKColors.Blue : SKColors.Orange,
-            //     Transform = new() {
-            //         Size = new(size)
-            //     }
-            // });
-            
-            var innerBoxColor = i % 2 == 0 ? SKColors.Orange : SKColors.Blue;
+            var innerBoxColor = new SKColor((byte)(255 - (inverseI * 5)), (byte)(inverseI * 5), 0);
+            var innerBoxColorHover = new SKColor((byte)(255 - (inverseI * 4.5f)), (byte)(inverseI * 4.5f), 255);
+
             var innerBox = new BoxElement {
                 Color = innerBoxColor,
                 Transform = new() {
-                    Size = new(size),
+                    ScaleWidth = true,
+                    ScaleHeight = true,
                     AnchorPosition = new(0.5f),
                     OffsetPosition = new(0.5f)
                 }
             };
             
-            innerBox.DoMouseEnter = () => {
-                innerBox.Color = SKColors.Red;
-                innerBox.Transform.Size = new(size * 4f);
-                draggable.ZIndex = 999;
-            };
-            innerBox.DoMouseLeave = () => {
-                innerBox.Color = innerBoxColor;
-                innerBox.Transform.Size = new(size);
-                draggable.ZIndex = 0;
-            };
+            draggable.DoMouseEnter = () => innerBox.Color = innerBoxColorHover;
+            draggable.DoMouseLeave = () => innerBox.Color = innerBoxColor;
             
             draggable.AddChild(innerBox);
             fillGrid.AddChild(draggable);
         }
         
         Element.AddChild(fillGrid);
-        Element.AddChild(text);
     }
-    
+
     protected override void OnUpdate() {
         base.OnUpdate();
-        grid.RowSpacing = 10 + (float)Math.Sin(UpdateTime.Time) * 10;
-        grid.ColumnSpacing = 10 + (float)Math.Cos(UpdateTime.Time) * 10;
-    }
-    
-    protected override void OnKeyDown(Key key) {
-        base.OnKeyDown(key);
-        if (key == Key.Up) grid.MaxRows++;
-        if (key == Key.Down) grid.MaxRows--;
-        if (key == Key.Left) grid.MaxColumns--;
-        if (key == Key.Right) grid.MaxColumns++;
-        if (key == Key.X) {
-            grid.FlowDirection = grid.FlowDirection == GridFlowDirection.Column ? GridFlowDirection.Row : GridFlowDirection.Column;
-            fillGrid.FlowDirection = fillGrid.FlowDirection == GridFlowDirection.Column ? GridFlowDirection.Row : GridFlowDirection.Column;
+        foreach (Element e in fillGrid.Children) {
+            e.Transform.LocalRotation += 10f * (float)UpdateTime.DeltaTime;
         }
     }
 }

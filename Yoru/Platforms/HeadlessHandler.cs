@@ -4,7 +4,7 @@ namespace Yoru.Platforms;
 
 public class HeadlessHandler : IApplicationHandler {
     public string Title { get; set; } = "";
-    public Vector2 Size { get; set; } = new(0);
+    public Vector2 Size { get; set; } = new(1);
     public void Close() { }
     
     public double RenderFrequency { get; set; } = 0;

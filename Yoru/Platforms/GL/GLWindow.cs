@@ -29,13 +29,18 @@ public class GLWindow : GameWindow, IApplicationHandler {
         App.Renderer = Renderer;
         Renderer.GLContext = Context;
         
-        App.CanvasScale = FramebufferSize.X / base.Size.X;
+        _dpi = FramebufferSize.X / base.Size.X;
+        App.CanvasScale = _dpi;
         App.Load();
     }
     
     protected override void OnRenderFrame(FrameEventArgs args) => App.Render();
     protected override void OnUpdateFrame(FrameEventArgs args) => App.Update();
-    protected override void OnFramebufferResize(FramebufferResizeEventArgs e) => App.Resize(e.Width, e.Height, FramebufferSize.X / base.Size.X);
+    protected override void OnFramebufferResize(FramebufferResizeEventArgs e) {
+        _dpi = FramebufferSize.X / base.Size.X;
+        App.Resize(FramebufferSize.X, FramebufferSize.Y, _dpi);
+    }
+    float _dpi = 1;
     
     protected override void OnKeyDown(KeyboardKeyEventArgs e) {
         if (e.IsRepeat) return;
@@ -49,5 +54,5 @@ public class GLWindow : GameWindow, IApplicationHandler {
     
     protected override void OnMouseDown(MouseButtonEventArgs e) => App.MouseDown((MouseButton)e.Button);
     protected override void OnMouseUp(MouseButtonEventArgs e) => App.MouseUp((MouseButton)e.Button);
-    protected override void OnMouseMove(MouseMoveEventArgs e) => App.MouseMove(Vector2.Clamp(new(MouseState.Position.X, MouseState.Position.Y), Vector2.Zero, Size));
+    protected override void OnMouseMove(MouseMoveEventArgs e) => App.MouseMove(Vector2.Clamp(new(MouseState.Position.X / App.CanvasScale * _dpi, MouseState.Position.Y / App.CanvasScale * _dpi), Vector2.Zero, Size));
 }

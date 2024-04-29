@@ -1,5 +1,7 @@
 #nullable disable
 
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Numerics;
 using SkiaSharp;
 using Yoru.Graphics;
@@ -26,8 +28,10 @@ public class Application {
     public float CanvasScale {
         get => _canvasScale;
         set {
+            value = MathF.Max(value, 0.1f);
             _canvasScale = value;
-            Resize((int)FramebufferSize.X, (int)FramebufferSize.Y, value);
+            if (Renderer.Surface != null)
+                Resize((int)FramebufferSize.X, (int)FramebufferSize.Y, value);
         }
     }
     
@@ -50,6 +54,9 @@ public class Application {
         
         Input = new(this);
         Animations = new(this);
+
+        Input.Load();
+        Animations.Load();
         
         UpdateTime = new(this);
         RenderTime = new(this);
@@ -100,6 +107,7 @@ public class Application {
     
     public void Resize(int width, int height) => Resize(width, height, CanvasScale);
     
+    public void ResizeElement(int width, int height, float canvasScale) => Resize((int)(width * canvasScale), (int)(height * canvasScale), canvasScale);
     public void ResizeElement(int width, int height) => Resize((int)(width * CanvasScale), (int)(height * CanvasScale));
     
     public void KeyDown(Key key) {

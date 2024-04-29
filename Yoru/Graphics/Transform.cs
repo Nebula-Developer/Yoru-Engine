@@ -25,7 +25,6 @@ public class Transform {
                 _element.Transform = this;
             
             UpdateTransforms();
-            ElementChanged();
         }
     }
     
@@ -34,8 +33,11 @@ public class Transform {
     }
     
     public void UpdateTransforms() {
+        _lockValueChange = true;
         UpdateSize();
         UpdatePosition();
+        UpdateRotation();
+        ValueChanged();
     }
     
     public void ApplyToCanvas(SKCanvas canvas) {
@@ -45,16 +47,24 @@ public class Transform {
         canvas.Translate(PivotPosition.X, PivotPosition.Y);
     }
     
-    public SKMatrix GetMatrix() {
-        Vector2 rotationPos = new(PivotPosition.X + Size.X * RotationOffset.X,
-            PivotPosition.Y + Size.Y * RotationOffset.Y);
-        var matrix = SKMatrix.CreateIdentity();
-        matrix = matrix.PostConcat(SKMatrix.CreateRotationDegrees(LocalRotation, rotationPos.X, rotationPos.Y));
-        matrix = matrix.PostConcat(SKMatrix.CreateTranslation(PivotPosition.X, PivotPosition.Y));
-        return matrix;
+    public SKMatrix Matrix { get; private set; }
+
+    private bool _lockValueChange = false;
+    private void ValueChanged() {
+        UpdateMatrix();
+        DoValueChanged?.Invoke();
+        Element?.TransformValueChanged();
     }
-    
-    protected virtual void ElementChanged() { }
+
+    public void UpdateMatrix() {
+        float canvasScale = Element?.App?.CanvasScale ?? 1;
+        Matrix = SKMatrix.CreateIdentity();
+        Matrix = Matrix.PostConcat(SKMatrix.CreateScale(canvasScale, canvasScale));
+        Matrix = Matrix.PostConcat(SKMatrix.CreateRotationDegrees(LocalRotation, (Size.X * RotationOffset.X), (Size.Y * RotationOffset.Y)));
+        Matrix = Matrix.PostConcat(SKMatrix.CreateTranslation(WorldPosition.X, WorldPosition.Y));
+    }
+
+    public Action DoValueChanged;
     
     #region Size
     
@@ -115,6 +125,7 @@ public class Transform {
         if (ParentScale.X != 0) _size.X = ParentScaleSize.X + _localSizeOffset.X;
         if (ParentScale.Y != 0) _size.Y = ParentScaleSize.Y + _localSizeOffset.Y;
         ProcessSizeChanged?.Invoke(_size);
+        ValueChanged();
         ExecuteChildren(child => child.Transform.UpdateSize());
     }
     
@@ -183,6 +194,7 @@ public class Transform {
         _pivotPosition = ParentSize * AnchorPosition - Size * OffsetPosition + LocalPosition;
         _worldPosition = ParentPosition + _pivotPosition;
         ProcessPositionChanged?.Invoke(_worldPosition);
+        ValueChanged();
         ExecuteChildren(child => child.Transform.UpdatePosition());
     }
     
@@ -219,6 +231,7 @@ public class Transform {
     public void UpdateRotation() {
         _worldRotation = ParentRotation + _localRotation;
         ProcessRotationChanged?.Invoke(_worldRotation);
+        ValueChanged();
         ExecuteChildren(child => child.Transform.UpdateRotation());
     }
     

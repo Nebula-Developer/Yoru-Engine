@@ -18,6 +18,7 @@ public class Element : IDisposable {
     
     private int _zIndex;
     public bool Cull { get; set; } = true;
+    public bool ClickThrough { get; set; } = true;
     
     public Transform Transform {
         get {
@@ -48,10 +49,11 @@ public class Element : IDisposable {
         }
     }
     
-    protected Application App {
+    public Application App {
         get => _app;
-        set {
+        protected set {
             _app = value;
+            Transform.UpdateMatrix();
             ForChildren(child => {
                 if (child.App != value)
                     child.App = value;
@@ -99,11 +101,12 @@ public class Element : IDisposable {
     public Action<Vector2> DoMouseMove { get; set; }
     public Action DoMouseEnter { get; set; }
     public Action DoMouseLeave { get; set; }
-    public Action DoMouseDrag { get; set; }
     
     public Action DoChildAdded { get; set; }
     public Action DoChildRemoved { get; set; }
     public Action DoTransformChanged { get; set; }
+    public Action DoTransformValueChanged { get; set; }
+
     public void Dispose() {
         Unload();
         GC.SuppressFinalize(this);
@@ -169,32 +172,42 @@ public class Element : IDisposable {
     protected virtual void OnMouseMove(Vector2 position) { }
     protected virtual void OnMouseEnter() { }
     protected virtual void OnMouseLeave() { }
-    protected virtual void OnMouseDrag() { }
     
     protected virtual void OnChildAdded(Element child) { }
     protected virtual void OnChildRemoved(Element child) { }
     protected virtual void OnTransformChanged() { }
+    protected virtual void OnTransformValueChanged() {
+        if (App == null || App.Input == null) return;
+        App?.Input.UpdateElementTransform(this);
+        
+        SKPoint[] points = Transform.Matrix.MapPoints(
+            new SKPoint[] {
+                new(0, 0),
+                new(Transform.Size.X, 0),
+                new(Transform.Size.X, Transform.Size.Y),
+                new(0, Transform.Size.Y),
+                new(0, 0)
+            }
+        );
+
+        Path = new SKPath();
+        for (int i = 0; i < points.Length; i++) {
+            if (i == 0) Path.MoveTo(points[i]);
+            else Path.LineTo(points[i]);
+        }
+    }
     
     public virtual bool PointIntersects(Vector2 position) {
         if (Transform.Size.X == 0 || Transform.Size.Y == 0) return false;
-        
-        if (position.X >= Transform.WorldPosition.X && position.X <= Transform.WorldPosition.X + Transform.Size.X &&
-            position.Y >= Transform.WorldPosition.Y && position.Y <= Transform.WorldPosition.Y + Transform.Size.Y) {
-            return true;
-        }
-        
-        return false;
+        return Path.Contains(position.X, position.Y);
     }
+
+    public virtual SKPath Path { get; private set; } = new();
     
-    protected virtual bool ShouldRender(SKCanvas canvas)
-        => !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
+    protected virtual bool ShouldRender(SKCanvas canvas, bool matrixApplied = true)
+        => matrixApplied ? !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y)) : !canvas.QuickReject(Path);
     
     public void Update() {
-        if (PointIntersects(App.Input.MousePosition))
-            App.Input.HandleElementEnter(this);
-        else
-            App.Input.HandleElementLeave(this);
-        
         OnUpdate();
         DoUpdate?.Invoke();
         ForChildren(child => child.Update());
@@ -202,8 +215,16 @@ public class Element : IDisposable {
     
     public void Render(SKCanvas canvas) {
         if (App == null) return;
-        
+
+        // make an skcolor from gethashcode
+        byte hash = (byte) GetHashCode();
+        SKColor color = new(hash, (byte)(hash >> 8), (byte)(hash >> 16), 255);
+
         var count = canvas.Save();
+        // canvas.SetMatrix(Transform.Matrix);
+        // canvas.DrawRect(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y), new SKPaint() {
+        //     Color = color
+        // });
         Transform.ApplyToCanvas(canvas);
         
         if (!Cull || ShouldRender(canvas)) {
@@ -238,10 +259,18 @@ public class Element : IDisposable {
     public void MouseMove(Vector2 position) => InvokeVirtualPair(() => OnMouseMove(position), () => DoMouseMove?.Invoke(position));
     public void MouseEnter() => InvokeVirtualPair(OnMouseEnter, DoMouseEnter);
     public void MouseLeave() => InvokeVirtualPair(OnMouseLeave, DoMouseLeave);
-    public void MouseDrag() => InvokeVirtualPair(OnMouseDrag, DoMouseDrag);
     public void ChildAdded(Element child) => InvokeVirtualPair(() => OnChildAdded(child), DoChildAdded);
     public void ChildRemoved(Element child) => InvokeVirtualPair(() => OnChildRemoved(child), DoChildRemoved);
     public void TransformChanged() => InvokeVirtualPair(OnTransformChanged, DoTransformChanged);
+    public void TransformValueChanged() => InvokeVirtualPair(OnTransformValueChanged, DoTransformValueChanged);
     
     public void Unload() => InvokeVirtualPair(OnUnload, DoUnload);
+
+    public override bool Equals(object obj) {
+        if (obj is Element element)
+            return element == this;
+        return false;
+    }
+
+    public override int GetHashCode() => base.GetHashCode();
 }

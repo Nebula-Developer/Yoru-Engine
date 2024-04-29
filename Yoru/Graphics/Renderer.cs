@@ -6,12 +6,8 @@ namespace Yoru.Graphics;
 
 public abstract class Renderer : IDisposable {
     protected SKSurface _surface;
-    public SKCanvas Canvas {
-        get => _surface.Canvas;
-    }
-    public SKSurface Surface {
-        get => _surface;
-    }
+    public SKCanvas Canvas => _surface.Canvas;
+    public SKSurface Surface => _surface;
     public virtual void Dispose() {
         _surface?.Dispose();
         GC.SuppressFinalize(this);

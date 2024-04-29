@@ -6,12 +6,15 @@ public class FillGridElement : Element {
     private float _columnSpacing;
     private GridFlowDirection _flowDirection = GridFlowDirection.Column;
     private float _rowSpacing;
+
+    public bool AutoRemap = true;
+
     public float RowSpacing {
         get => _rowSpacing;
         set {
             if (_rowSpacing == value) return;
             _rowSpacing = value;
-            RemapGrid();
+            if (AutoRemap) RemapGrid();
         }
     }
     
@@ -20,7 +23,7 @@ public class FillGridElement : Element {
         set {
             if (_columnSpacing == value) return;
             _columnSpacing = value;
-            RemapGrid();
+            if (AutoRemap) RemapGrid();
         }
     }
     
@@ -29,38 +32,21 @@ public class FillGridElement : Element {
         set {
             if (_flowDirection == value) return;
             _flowDirection = value;
-            RemapGrid();
+            if (AutoRemap) RemapGrid();
         }
     }
     
     public void RemapGrid() {
-        // var column = 0;
-        // var row = 0;
-        // foreach (var child in Children) {
-        //     child.Transform.LocalPosition = new(column * (child.Transform.Size.X + ColumnSpacing), row * (child.Transform.Size.Y + RowSpacing));
-        //     if (FlowDirection == GridFlowDirection.Column) {
-        //         column++;
-        //         if (column * (child.Transform.Size.X + ColumnSpacing) >= Transform.Size.X - child.Transform.Size.X - ColumnSpacing) {
-        //             column = 0;
-        //             row++;
-        //         }
-        //     } else {
-        //         row++;
-        //         if (row * (child.Transform.Size.Y + RowSpacing) >= Transform.Size.Y - child.Transform.Size.Y - RowSpacing) {
-        //             row = 0;
-        //             column++;
-        //         }
-        //     }
-        // }
         float x = 0;
         float y = 0;
         float maxWidth = 0;
         float maxHeight = 0;
         
-        foreach (var child in Children) {
+        ForChildren(child => {
             child.Transform.LocalPosition = new(x, y);
             if (child.Transform.Size.X > maxWidth) maxWidth = child.Transform.Size.X;
             if (child.Transform.Size.Y > maxHeight) maxHeight = child.Transform.Size.Y;
+
             if (FlowDirection == GridFlowDirection.Column) {
                 x += child.Transform.Size.X + ColumnSpacing;
                 if (x >= Transform.Size.X - child.Transform.Size.X - ColumnSpacing) {
@@ -76,21 +62,23 @@ public class FillGridElement : Element {
                     maxWidth = 0;
                 }
             }
-        }
+        });
     }
     
     protected override void OnChildAdded(Element child) {
         base.OnChildAdded(child);
-        RemapGrid();
+        if (AutoRemap) RemapGrid();
     }
     
     protected override void OnChildRemoved(Element child) {
         base.OnChildRemoved(child);
-        RemapGrid();
+        if (AutoRemap) RemapGrid();
     }
     
     protected override void OnTransformChanged() {
         base.OnTransformChanged();
-        Transform.ProcessSizeChanged += size => RemapGrid();
+        Transform.ProcessSizeChanged += _ => {
+            if (AutoRemap) RemapGrid();
+        };
     }
 }
