@@ -3,6 +3,7 @@
 using System.Drawing;
 using System.Numerics;
 using System.Runtime.ExceptionServices;
+using System.Transactions;
 using SkiaSharp;
 using Yoru.Elements;
 using Yoru.Graphics;
@@ -28,14 +29,14 @@ public class DraggableElement : Element {
         base.OnMouseDown(button);
         mouseStart = App.Input.MousePosition;
         startPos = Transform.WorldPosition;
-        return false;
+        return true;
     }
     
     protected override bool OnMouseUp(MouseButton button) {
         if (curButton == null || button != curButton) return true;
         curButton = null;
         base.OnMouseUp(button);
-        return false;
+        return true;
     }
     
     protected override void OnMouseMove(Vector2 position) {
@@ -86,47 +87,111 @@ public class GridTestApp : Application {
     
     protected override void OnLoad() {
         base.OnLoad();
-        
-        for (var i = 0; i < 50; i++) {
-            int inverseI = 50 - i;
-            DraggableElement draggable = new() {
-                Transform = new() {
-                    Size = new(i * 10),
-                    OffsetPosition = new(0.5f),
-                    AnchorPosition = new(0.5f),
-                    RotationOffset = new(0.5f)
-                },
-                ZIndex = inverseI,
-                ClickThrough = true
-            };
-            
-            var innerBoxColor = new SKColor((byte)(255 - (inverseI * 5)), (byte)(inverseI * 5), 0);
-            var innerBoxColorHover = new SKColor((byte)(255 - (inverseI * 4.5f)), (byte)(inverseI * 4.5f), 255);
 
-            var innerBox = new BoxElement {
-                Color = innerBoxColor,
+        BoxElement topBar = new() {
+            Transform = new() {
+                Size = new(40),
+                ScaleWidth = true
+            },
+            Color = new(120, 120, 120),
+            ClickThrough = true
+        };
+
+        Element fillGridParent = new (){
+            Transform = new() {
+                LocalPosition = new(5, 0),
+                AnchorPosition = new(0, 0.5f),
+                OffsetPosition = new(0, 0.5f),
+                ScaleHeight = true,
+                ScaleWidth = true
+            }
+        };
+
+        FillGridElement leftGrid = new() {
+            Transform = new() {
+                ScaleHeight = true,
+                ScaleWidth = true
+            },
+            FlowDirection = GridFlowDirection.Row,
+            ColumnSpacing = 10,
+            AutoRemap = false
+        };
+
+        fillGridParent.AddChild(leftGrid);
+
+        leftGrid.DoMouseDown += (btn) => {
+            leftGrid.RemapGrid();
+        };
+
+        for (int i = 0; i < 5; i++) {
+            var drag = new DraggableElement() {
+                Transform = new() {
+                    Size = new(30),
+                    AnchorPosition = new(0, 0.5f),
+                    OffsetPosition = new(0, 0.5f)
+                },
+                ClickThrough = false,
+                Button = i % 2 == 0 ? MouseButton.Left : MouseButton.Right
+                // Color = SKColors.Red
+            };
+
+            var box = new BoxElement() {
                 Transform = new() {
                     ScaleWidth = true,
                     ScaleHeight = true,
-                    AnchorPosition = new(0.5f),
-                    OffsetPosition = new(0.5f)
-                }
+                },
+                Color = SKColors.Red
             };
-            
-            draggable.DoMouseEnter = () => innerBox.Color = innerBoxColorHover;
-            draggable.DoMouseLeave = () => innerBox.Color = innerBoxColor;
-            
-            draggable.AddChild(innerBox);
-            fillGrid.AddChild(draggable);
+
+            box.Parent = drag;
+
+            bool locker = false;
+            bool over = false;
+            drag.DoMouseEnter += () => {
+                over = true;
+                box.Color = SKColors.Orange;
+            };
+
+            drag.DoMouseDown += (btn) => {
+                if (btn != drag.Button) return;
+                locker = true;
+            };
+
+            drag.DoMouseLeave += () => {
+                over = false;
+                if (locker) return;
+                box.Color = SKColors.Red;
+            };
+
+            drag.DoMouseUp += (btn) => {
+                if (!locker || btn != drag.Button || over) {
+                    locker = false;
+                    return;
+                }
+                box.Color = SKColors.Red;
+                locker = false;
+            };
+
+            leftGrid.AddChild(drag);
         }
-        
-        Element.AddChild(fillGrid);
-    }
+
+        topBar.AddChild(fillGridParent);
+
+        topBar.DoMouseEnter += () => {
+            topBar.Color = new(150, 150, 150);
+        };
+
+        topBar.DoMouseLeave += () => {
+            topBar.Color = new(120, 120, 120);
+        };
+
+        Element.AddChild(topBar);
+    }   
 
     protected override void OnUpdate() {
         base.OnUpdate();
         foreach (Element e in fillGrid.Children) {
-            e.Transform.LocalRotation += 10f * (float)UpdateTime.DeltaTime;
+            // e.Transform.LocalRotation += 10f * (float)UpdateTime.DeltaTime;
         }
     }
 }

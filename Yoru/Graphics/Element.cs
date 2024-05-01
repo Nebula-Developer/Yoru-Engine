@@ -19,6 +19,7 @@ public class Element : IDisposable {
     private int _zIndex;
     public bool Cull { get; set; } = true;
     public bool ClickThrough { get; set; } = true;
+    public bool ApplyTransformMatrix { get; set; } = true;
     
     public Transform Transform {
         get {
@@ -216,24 +217,15 @@ public class Element : IDisposable {
     public void Render(SKCanvas canvas) {
         if (App == null) return;
 
-        // make an skcolor from gethashcode
-        byte hash = (byte) GetHashCode();
-        SKColor color = new(hash, (byte)(hash >> 8), (byte)(hash >> 16), 255);
+        using SKAutoCanvasRestore restore = new(canvas);
+        if (ApplyTransformMatrix) Transform.ApplyToCanvas(canvas);
 
-        var count = canvas.Save();
-        // canvas.SetMatrix(Transform.Matrix);
-        // canvas.DrawRect(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y), new SKPaint() {
-        //     Color = color
-        // });
-        Transform.ApplyToCanvas(canvas);
-        
         if (!Cull || ShouldRender(canvas)) {
             OnRender(canvas);
             DoRender?.Invoke(canvas);
         }
-        
+
         OnRenderChildren(canvas);
-        canvas.RestoreToCount(count);
     }
     
     public void Resize(int width, int height) {

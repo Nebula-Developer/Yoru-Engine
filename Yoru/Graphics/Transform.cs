@@ -57,10 +57,8 @@ public class Transform {
     }
 
     public void UpdateMatrix() {
-        float canvasScale = Element?.App?.CanvasScale ?? 1;
         Matrix = SKMatrix.CreateIdentity();
-        Matrix = Matrix.PostConcat(SKMatrix.CreateScale(canvasScale, canvasScale));
-        Matrix = Matrix.PostConcat(SKMatrix.CreateRotationDegrees(LocalRotation, (Size.X * RotationOffset.X), (Size.Y * RotationOffset.Y)));
+        Matrix = Matrix.PostConcat(SKMatrix.CreateRotationDegrees(LocalRotation, Size.X * RotationOffset.X, Size.Y * RotationOffset.Y));
         Matrix = Matrix.PostConcat(SKMatrix.CreateTranslation(WorldPosition.X, WorldPosition.Y));
     }
 

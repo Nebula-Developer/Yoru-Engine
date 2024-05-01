@@ -77,9 +77,10 @@ public class InputContext(Application app) : AppContext(app) {
         }
 
         for (int i = 0; i < removingElements.Count; i++) {
-            if (PressedElements.Any(x => x.Value.Contains(removingElements[i]))) {
-                interactingElements.Add(removingElements[i]);
-            } else if (HoveredElements.Contains(removingElements[i])) {
+            // if (PressedElements.Any(x => x.Value.Contains(removingElements[i]))) {
+            //     interactingElements.Add(removingElements[i]);
+            // } else
+            if (HoveredElements.Contains(removingElements[i])) {
                 HoveredElements.Remove(removingElements[i]);
                 removingElements[i].MouseLeave();
             }
