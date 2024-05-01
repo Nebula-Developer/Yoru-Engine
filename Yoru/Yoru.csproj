@@ -14,8 +14,8 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageProjectUrl>https://github.com/nebula-developer/yoru-engine</PackageProjectUrl>
         <RepositoryUrl>https://github.com/nebula-developer/yoru-engine</RepositoryUrl>
-        <Version>1.0.0-alpha.0</Version>
-        <PackageReleaseNotes>First beta for the revamp of Yoru Engine</PackageReleaseNotes>
+        <Version>1.0.0-alpha.1</Version>
+        <PackageReleaseNotes>Second alpha release for Yoru Engine v1.0</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
