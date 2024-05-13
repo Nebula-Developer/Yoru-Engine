@@ -8,6 +8,7 @@ using Yoru.Input;
 namespace Yoru.Platforms.GL;
 
 public class GLWindow : GameWindow, IApplicationHandler {
+    private float _dpi = 1;
     public Application App;
     public GLRenderer Renderer;
     public GLWindow() : base(GameWindowSettings.Default, NativeWindowSettings.Default) { }
@@ -40,7 +41,6 @@ public class GLWindow : GameWindow, IApplicationHandler {
         _dpi = FramebufferSize.X / base.Size.X;
         App.Resize(FramebufferSize.X, FramebufferSize.Y, _dpi);
     }
-    float _dpi = 1;
     
     protected override void OnKeyDown(KeyboardKeyEventArgs e) {
         if (e.IsRepeat) return;
@@ -54,5 +54,6 @@ public class GLWindow : GameWindow, IApplicationHandler {
     
     protected override void OnMouseDown(MouseButtonEventArgs e) => App.MouseDown((MouseButton)e.Button);
     protected override void OnMouseUp(MouseButtonEventArgs e) => App.MouseUp((MouseButton)e.Button);
-    protected override void OnMouseMove(MouseMoveEventArgs e) => App.MouseMove(Vector2.Clamp(new(MouseState.Position.X / App.CanvasScale * _dpi, MouseState.Position.Y / App.CanvasScale * _dpi), Vector2.Zero, Size));
+    protected override void OnMouseMove(MouseMoveEventArgs e)
+        => App.MouseMove(Vector2.Clamp(new(MouseState.Position.X / App.CanvasScale * _dpi, MouseState.Position.Y / App.CanvasScale * _dpi), Vector2.Zero, Size));
 }

@@ -1,11 +1,10 @@
-﻿
-using SkiaSharp;
+﻿using SkiaSharp;
 using Yoru;
 using Yoru.Elements;
 using Yoru.Platforms.GL;
 
 public class MyApp : Application {
-    BoxElement box = new() {
+    private readonly BoxElement box = new() {
         Color = SKColors.Green,
         Transform = new() {
             Size = new(100),
@@ -14,12 +13,12 @@ public class MyApp : Application {
             RotationOffset = new(0.5f)
         }
     };
-
+    
     protected override void OnLoad() {
         base.OnLoad();
         Element.AddChild(box);
     }
-
+    
     protected override void OnUpdate() {
         base.OnUpdate();
         box.Transform.LocalRotation += (float)UpdateTime.DeltaTime * 100f;
@@ -28,7 +27,7 @@ public class MyApp : Application {
 
 public static class Program {
     public static void Main(string[] args) {
-        new GLWindow() {
+        new GLWindow {
             App = new MyApp()
         }.Run();
     }

@@ -1,7 +1,6 @@
 #nullable disable
 
 using System.Numerics;
-using SkiaSharp;
 using Yoru.Graphics;
 
 namespace Yoru.Input;
@@ -11,17 +10,21 @@ public class InputContext(Application app) : AppContext(app) {
     private readonly Dictionary<Key, int> _pressedKeys = new();
     private readonly Dictionary<MouseButton, int> _releasedButtons = new();
     private readonly Dictionary<Key, int> _releasedKeys = new();
+    
+    private readonly List<Element> HoveredElements = new();
+    private List<Element> InteractingElements = new();
+    public int MaskIndex = 0;
+    private readonly Dictionary<MouseButton, List<Element>> PressedElements = new();
     private HashSet<Key> _keys { get; } = new();
     private HashSet<MouseButton> _buttons { get; } = new();
-
-    public IReadOnlyCollection<Key> Keys => _keys;
-    public IReadOnlyCollection<MouseButton> Buttons => _buttons;
-    public Vector2 MousePosition { get; private set; } = new();
-
-    private List<Element> HoveredElements = new();
-    private List<Element> InteractingElements = new();
-    private Dictionary<MouseButton, List<Element>> PressedElements = new();
-    public int MaskIndex = 0;
+    
+    public IReadOnlyCollection<Key> Keys {
+        get => _keys;
+    }
+    public IReadOnlyCollection<MouseButton> Buttons {
+        get => _buttons;
+    }
+    public Vector2 MousePosition { get; private set; }
     
     public void Update() { }
     
@@ -45,7 +48,7 @@ public class InputContext(Application app) : AppContext(app) {
         
         keysToRemove.ForEach(key => collection.Remove(key));
     }
-
+    
     public void HandleKeyDown(Key key) {
         _keys.Add(key);
         _pressedKeys.TryGetValue(key, out var count);
@@ -57,11 +60,11 @@ public class InputContext(Application app) : AppContext(app) {
         _releasedKeys.TryGetValue(key, out var count);
         _releasedKeys[key] = count + 1;
     }
-
+    
     public void HandleMouseInteractions(ref Queue<Element> queue, ref List<Element> interactingElements, int position = 0) {
         var elements = queue.Dequeue().Children;
         List<Element> removingElements = new();
-
+        
         for (var i = 0; i < elements.Count; i++) {
             var element = elements[i];
             if (element.PointIntersects(MousePosition)) {
@@ -69,14 +72,14 @@ public class InputContext(Application app) : AppContext(app) {
                     removingElements.AddRange(interactingElements);
                     interactingElements.Clear();
                 }
-
+                
                 interactingElements.Add(element);
             } else removingElements.Add(element);
-
+            
             queue.Enqueue(element);
         }
-
-        for (int i = 0; i < removingElements.Count; i++) {
+        
+        for (var i = 0; i < removingElements.Count; i++) {
             // if (PressedElements.Any(x => x.Value.Contains(removingElements[i]))) {
             //     interactingElements.Add(removingElements[i]);
             // } else
@@ -86,10 +89,10 @@ public class InputContext(Application app) : AppContext(app) {
                 Console.WriteLine("Leave: " + removingElements[i].GetHashCode());
             }
         }
-
+        
         if (queue.Count > 0) HandleMouseInteractions(ref queue, ref interactingElements, position);
     }
-
+    
     public void HandleMouseInteractions(Element elm = null) {
         elm = elm ?? App.Element;
         Queue<Element> interactQueue = new();
@@ -97,25 +100,25 @@ public class InputContext(Application app) : AppContext(app) {
         List<Element> completed = new();
         HandleMouseInteractions(ref interactQueue, ref completed);
         
-        for (int i = 0; i < completed.Count; i++) {
+        for (var i = 0; i < completed.Count; i++) {
             if (!HoveredElements.Contains(completed[i])) {
                 HoveredElements.Add(completed[i]);
                 completed[i].MouseEnter();
                 Console.WriteLine("Enter: " + completed[i].GetHashCode());
             }
         }
-
+        
         InteractingElements = completed;
     }
     
     public void UpdateMousePosition(Vector2 position) {
         MousePosition = position;
         HandleMouseInteractions();
-
+        
         List<Element> completedElements = new();
-        for (int i = 0; i < PressedElements.Count; i++) {
+        for (var i = 0; i < PressedElements.Count; i++) {
             var list = PressedElements.ElementAt(i).Value;
-            for (int j = 0; j < list.Count; j++) {
+            for (var j = 0; j < list.Count; j++) {
                 if (completedElements.Contains(list[j]))
                     continue;
                 completedElements.Add(list[j]);
@@ -130,13 +133,13 @@ public class InputContext(Application app) : AppContext(app) {
         _buttons.Add(button);
         _pressedButtons.TryGetValue(button, out var count);
         _pressedButtons[button] = count + 1;
-
+        
         if (!PressedElements.ContainsKey(button))
             PressedElements[button] = new();
         else
             PressedElements[button].Clear();
         
-        for (int i = InteractingElements.Count - 1; i >= 0; i--) {
+        for (var i = InteractingElements.Count - 1; i >= 0; i--) {
             var x = InteractingElements.ElementAt(i);
             PressedElements[button].Add(x);
             
@@ -149,17 +152,17 @@ public class InputContext(Application app) : AppContext(app) {
         _buttons.Remove(button);
         _releasedButtons.TryGetValue(button, out var count);
         _releasedButtons[button] = count + 1;
-
+        
         if (!PressedElements.ContainsKey(button))
             return;
-
-        for (int i = PressedElements[button].Count - 1; i >= 0; i--) {
+        
+        for (var i = PressedElements[button].Count - 1; i >= 0; i--) {
             var x = PressedElements[button][i];
             
             if (!x.MouseUp(button))
                 break;
         }
-
+        
         PressedElements[button].Clear();
     }
     

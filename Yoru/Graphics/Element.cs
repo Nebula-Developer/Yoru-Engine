@@ -107,7 +107,9 @@ public class Element : IDisposable {
     public Action DoChildRemoved { get; set; }
     public Action DoTransformChanged { get; set; }
     public Action DoTransformValueChanged { get; set; }
-
+    
+    public virtual SKPath Path { get; private set; } = new();
+    
     public void Dispose() {
         Unload();
         GC.SuppressFinalize(this);
@@ -181,7 +183,7 @@ public class Element : IDisposable {
         if (App == null || App.Input == null) return;
         App?.Input.UpdateElementTransform(this);
         
-        SKPoint[] points = Transform.Matrix.MapPoints(
+        var points = Transform.Matrix.MapPoints(
             new SKPoint[] {
                 new(0, 0),
                 new(Transform.Size.X, 0),
@@ -190,9 +192,9 @@ public class Element : IDisposable {
                 new(0, 0)
             }
         );
-
-        Path = new SKPath();
-        for (int i = 0; i < points.Length; i++) {
+        
+        Path = new();
+        for (var i = 0; i < points.Length; i++) {
             if (i == 0) Path.MoveTo(points[i]);
             else Path.LineTo(points[i]);
         }
@@ -202,8 +204,6 @@ public class Element : IDisposable {
         if (Transform.Size.X == 0 || Transform.Size.Y == 0) return false;
         return Path.Contains(position.X, position.Y);
     }
-
-    public virtual SKPath Path { get; private set; } = new();
     
     protected virtual bool ShouldRender(SKCanvas canvas, bool matrixApplied = true)
         => matrixApplied ? !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y)) : !canvas.QuickReject(Path);
@@ -215,28 +215,33 @@ public class Element : IDisposable {
     }
     
     public void Render(SKCanvas canvas) {
-        if (App == null) return;
-
+        if (App == null || App.DrawingMethod == ElementDrawingMethod.None) return;
+        
         using SKAutoCanvasRestore restore = new(canvas);
         if (ApplyTransformMatrix) Transform.ApplyToCanvas(canvas);
-        // canvas.ResetMatrix();
-        // canvas.Scale(2);
-
+        
         if (!Cull || ShouldRender(canvas)) {
-            OnRender(canvas);
-            DoRender?.Invoke(canvas);
-            using (SKAutoCanvasRestore restoreWireframe = new(canvas)) {
-                canvas.ResetMatrix();
-                canvas.Scale(App.CanvasScale);
-                canvas.DrawPoints(SKPointMode.Polygon, Path.Points, new SKPaint {
-                    Color = SKColors.Blue,
-                    IsAntialias = true,
-                    Style = SKPaintStyle.Stroke,
-                    StrokeWidth = 2
-                });
+            switch (App.DrawingMethod) {
+                case ElementDrawingMethod.Render:
+                    OnRender(canvas);
+                    DoRender?.Invoke(canvas);
+                    break;
+                case ElementDrawingMethod.PathOutline:
+                    using (SKAutoCanvasRestore restoreWireframe = new(canvas)) {
+                        canvas.ResetMatrix();
+                        canvas.Scale(App.CanvasScale);
+                        canvas.DrawPoints(SKPointMode.Polygon, Path.Points, new() {
+                            Color = SKColors.Blue,
+                            IsAntialias = true,
+                            Style = SKPaintStyle.Stroke,
+                            StrokeWidth = 2
+                        });
+                    }
+                    
+                    break;
             }
         }
-
+        
         OnRenderChildren(canvas);
     }
     
@@ -269,12 +274,12 @@ public class Element : IDisposable {
     public void TransformValueChanged() => InvokeVirtualPair(OnTransformValueChanged, DoTransformValueChanged);
     
     public void Unload() => InvokeVirtualPair(OnUnload, DoUnload);
-
+    
     public override bool Equals(object obj) {
         if (obj is Element element)
             return element == this;
         return false;
     }
-
+    
     public override int GetHashCode() => base.GetHashCode();
 }

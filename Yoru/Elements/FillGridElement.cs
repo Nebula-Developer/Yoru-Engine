@@ -6,9 +6,9 @@ public class FillGridElement : Element {
     private float _columnSpacing;
     private GridFlowDirection _flowDirection = GridFlowDirection.Column;
     private float _rowSpacing;
-
+    
     public bool AutoRemap = true;
-
+    
     public float RowSpacing {
         get => _rowSpacing;
         set {
@@ -46,7 +46,7 @@ public class FillGridElement : Element {
             child.Transform.LocalPosition = new(x, y);
             if (child.Transform.Size.X > maxWidth) maxWidth = child.Transform.Size.X;
             if (child.Transform.Size.Y > maxHeight) maxHeight = child.Transform.Size.Y;
-
+            
             if (FlowDirection == GridFlowDirection.Column) {
                 x += child.Transform.Size.X + ColumnSpacing;
                 if (x >= Transform.Size.X - child.Transform.Size.X - ColumnSpacing) {

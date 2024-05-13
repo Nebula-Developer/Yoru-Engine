@@ -8,6 +8,10 @@ namespace Yoru.Graphics;
 public class Transform {
     private Element _element;
     
+    private bool _lockValueChange;
+    
+    public Action DoValueChanged;
+    
     public Vector2 RotationOffset = new(0, 0);
     
     public Element Element {
@@ -28,6 +32,8 @@ public class Transform {
         }
     }
     
+    public SKMatrix Matrix { get; private set; }
+    
     private void ExecuteChildren(Action<Element> action) {
         Element?.ForChildren(action);
     }
@@ -46,23 +52,17 @@ public class Transform {
         canvas.RotateDegrees(LocalRotation, rotationPos.X, rotationPos.Y);
         canvas.Translate(PivotPosition.X, PivotPosition.Y);
     }
-    
-    public SKMatrix Matrix { get; private set; }
-
-    private bool _lockValueChange = false;
     private void ValueChanged() {
         UpdateMatrix();
         DoValueChanged?.Invoke();
         Element?.TransformValueChanged();
     }
-
+    
     public void UpdateMatrix() {
         Matrix = SKMatrix.CreateIdentity();
         Matrix = Matrix.PostConcat(SKMatrix.CreateRotationDegrees(LocalRotation, Size.X * RotationOffset.X, Size.Y * RotationOffset.Y));
         Matrix = Matrix.PostConcat(SKMatrix.CreateTranslation(WorldPosition.X, WorldPosition.Y));
     }
-
-    public Action DoValueChanged;
     
     #region Size
     

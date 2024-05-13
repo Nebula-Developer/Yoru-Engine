@@ -10,9 +10,9 @@ public class GridElement : Element {
     private int _maxColumns = 1;
     private int _maxRows = 1;
     private float _rowSpacing;
-
+    
     public bool AutoRemap = true;
-
+    
     public int MaxRows {
         get => _maxRows;
         set {
