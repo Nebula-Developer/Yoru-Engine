@@ -219,10 +219,22 @@ public class Element : IDisposable {
 
         using SKAutoCanvasRestore restore = new(canvas);
         if (ApplyTransformMatrix) Transform.ApplyToCanvas(canvas);
+        // canvas.ResetMatrix();
+        // canvas.Scale(2);
 
         if (!Cull || ShouldRender(canvas)) {
             OnRender(canvas);
             DoRender?.Invoke(canvas);
+            using (SKAutoCanvasRestore restoreWireframe = new(canvas)) {
+                canvas.ResetMatrix();
+                canvas.Scale(App.CanvasScale);
+                canvas.DrawPoints(SKPointMode.Polygon, Path.Points, new SKPaint {
+                    Color = SKColors.Blue,
+                    IsAntialias = true,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 2
+                });
+            }
         }
 
         OnRenderChildren(canvas);

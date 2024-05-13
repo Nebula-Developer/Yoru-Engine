@@ -1,198 +1,131 @@
 ﻿#nullable disable
 
-using System.Drawing;
 using System.Numerics;
-using System.Runtime.ExceptionServices;
-using System.Transactions;
 using SkiaSharp;
 using Yoru.Elements;
 using Yoru.Graphics;
-using Yoru.Input;
 using Yoru.Platforms.GL;
 
 namespace Yoru.ProgramTests;
 
-public class DraggableElement : Element {
-    private MouseButton? curButton;
-    
-    private Vector2 mouseStart;
-    private Vector2 startPos;
-    public MouseButton Button { get; set; } = MouseButton.Left;
-    
-    protected override void OnLoad() {
-        base.OnLoad();
-    }
-    
-    protected override bool OnMouseDown(MouseButton button) {
-        if (button != Button) return true;
-        curButton = Button;
-        base.OnMouseDown(button);
-        mouseStart = App.Input.MousePosition;
-        startPos = Transform.WorldPosition;
-        return true;
-    }
-    
-    protected override bool OnMouseUp(MouseButton button) {
-        if (curButton == null || button != curButton) return true;
-        curButton = null;
-        base.OnMouseUp(button);
-        return true;
-    }
-    
-    protected override void OnMouseMove(Vector2 position) {
-        if (curButton == null) return;
-        base.OnMouseMove(position);
-        Transform.WorldPosition = startPos + position - mouseStart;
-    }
-}
-
-public class HoverText : TextElement {
-    private bool locker;
-    private Vector2 mouseStart;
-    private SKColor selfColor;
-    private Vector2 snapPos;
-    
-    protected override void OnLoad() {
-        base.OnLoad();
-        selfColor = Color;
-    }
-    
-    protected override bool OnMouseDown(MouseButton button) {
-        if (button != MouseButton.Left) return true;
-        locker = true;
-        base.OnMouseDown(button);
-        Color = SKColors.Red;
-        snapPos = Transform.WorldPosition;
-        mouseStart = App.Input.MousePosition;
-        return true;
-    }
-    
-    protected override bool OnMouseUp(MouseButton button) {
-        if (button != MouseButton.Left) return true;
-        locker = false;
-        base.OnMouseUp(button);
-        Color = selfColor;
-        return true;
+public class DragPoint : DraggableElement {
+    protected override void OnRender(SKCanvas canvas) {
+        base.OnRender(canvas);
+        canvas.DrawCircle(Transform.Size.X / 2, Transform.Size.X / 2, Transform.Size.X / 2, new SKPaint {
+            Color = SKColors.Red,
+            IsAntialias = true
+        });
     }
 }
 
 public class GridTestApp : Application {
-    public Element fillGrid = new() {
+    public DragPoint pointA = new() {
         Transform = new() {
-            Size = new(500),
-            OffsetPosition = new(0.5f),
-            AnchorPosition = new(0.5f)
+            WorldPosition = new(100, 100),
+            Size = new(8),
+            OffsetPosition = new(0.5f)
         }
     };
-    
+
+    public DragPoint pointB = new() {
+        Transform = new() {
+            WorldPosition = new(300, 300),
+            Size = new(8),
+            OffsetPosition = new(0.5f)
+        }
+    };
+
+    public DragPoint pointC = new() {
+        Transform = new() {
+            WorldPosition = new(300, 100),
+            Size = new(8),
+            OffsetPosition = new(0.5f)
+        }
+    };
+
+    public PathElement path = new() {
+        Color = SKColors.White,
+        StrokeWidth = 20,
+        FillType = SKPathFillType.EvenOdd,
+        PathEffect = SKPathEffect.CreateDash(new float[] { 10, 10 }, 0),
+        Points = [
+            new Vector2(100, 100),
+            new Vector2(300, 300),
+            new Vector2(300, 100)
+        ]
+    };
+
+    public CircleElement circTest = new() {
+        Color = SKColors.Cyan,
+        Transform = new() {
+            WorldPosition = new(200, 200),
+            Size = new(100),
+            // AnchorPosition = new(1),
+            OffsetPosition = new(1)
+        },
+        ZIndex = 999
+    };
+
     protected override void OnLoad() {
-        base.OnLoad();
+        Element.AddChild(pointA);
+        Element.AddChild(pointB);
+        Element.AddChild(pointC);
+        Element.AddChild(path);
+        Element.AddChild(circTest);
 
-        BoxElement topBar = new() {
-            Transform = new() {
-                Size = new(40),
-                ScaleWidth = true
-            },
-            Color = new(120, 120, 120),
-            ClickThrough = true
-        };
+        void Update() {
+            List<Vector2> points = new();
+            Vector2 a = pointA.Transform.WorldPosition;
+            Vector2 b = pointB.Transform.WorldPosition;
+            Vector2 c = pointC.Transform.WorldPosition;
+            points.Add(a);
 
-        Element fillGridParent = new (){
-            Transform = new() {
-                LocalPosition = new(5, 0),
-                AnchorPosition = new(0, 0.5f),
-                OffsetPosition = new(0, 0.5f),
-                ScaleHeight = true,
-                ScaleWidth = true
+            for (float t = 0; t <= 1; t += 0.01f) {
+                Vector2 ab = Lerp(a, b, t);
+                Vector2 bc = Lerp(b, c, t);
+                Vector2 abc = Lerp(ab, bc, t);
+
+                points.Add(abc);
             }
-        };
 
-        FillGridElement leftGrid = new() {
-            Transform = new() {
-                ScaleHeight = true,
-                ScaleWidth = true
-            },
-            FlowDirection = GridFlowDirection.Row,
-            ColumnSpacing = 10,
-            AutoRemap = false
-        };
-
-        fillGridParent.AddChild(leftGrid);
-
-        leftGrid.DoMouseDown += (btn) => {
-            leftGrid.RemapGrid();
-        };
-
-        for (int i = 0; i < 5; i++) {
-            var drag = new DraggableElement() {
-                Transform = new() {
-                    Size = new(30),
-                    AnchorPosition = new(0, 0.5f),
-                    OffsetPosition = new(0, 0.5f)
-                },
-                ClickThrough = false,
-                Button = i % 2 == 0 ? MouseButton.Left : MouseButton.Right
-                // Color = SKColors.Red
-            };
-
-            var box = new BoxElement() {
-                Transform = new() {
-                    ScaleWidth = true,
-                    ScaleHeight = true,
-                },
-                Color = SKColors.Red
-            };
-
-            box.Parent = drag;
-
-            bool locker = false;
-            bool over = false;
-            drag.DoMouseEnter += () => {
-                over = true;
-                box.Color = SKColors.Orange;
-            };
-
-            drag.DoMouseDown += (btn) => {
-                if (btn != drag.Button) return;
-                locker = true;
-            };
-
-            drag.DoMouseLeave += () => {
-                over = false;
-                if (locker) return;
-                box.Color = SKColors.Red;
-            };
-
-            drag.DoMouseUp += (btn) => {
-                if (!locker || btn != drag.Button || over) {
-                    locker = false;
-                    return;
-                }
-                box.Color = SKColors.Red;
-                locker = false;
-            };
-
-            leftGrid.AddChild(drag);
+            points.Add(c);
+            path.Points = points.ToArray();
         }
 
-        topBar.AddChild(fillGridParent);
+        pointA.DoMouseMove += (_) => Update();
+        pointB.DoMouseMove += (_) => Update();
+        pointC.DoMouseMove += (_) => Update();
+    }
 
-        topBar.DoMouseEnter += () => {
-            topBar.Color = new(150, 150, 150);
-        };
+    public static float Lerp(float a, float b, float t) => a + (b - a) * t;
+    public static Vector2 Lerp(Vector2 a, Vector2 b, float t) => new(Lerp(a.X, b.X, t), Lerp(a.Y, b.Y, t));
 
-        topBar.DoMouseLeave += () => {
-            topBar.Color = new(120, 120, 120);
-        };
+    protected override void OnRender() {
+        base.OnRender();
 
-        Element.AddChild(topBar);
-    }   
+        // SKPath path = new();
+        // Vector2 a = pointA.Transform.WorldPosition;
+        // Vector2 b = pointB.Transform.WorldPosition;
+        // Vector2 c = pointC.Transform.WorldPosition;
+
+        // path.MoveTo(a.X, a.Y);
+        // for (float t = 0; t <= 1; t += 0.01f) {
+        //     Vector2 ab = Lerp(a, b, t);
+        //     Vector2 bc = Lerp(b, c, t);
+        //     Vector2 abc = Lerp(ab, bc, t);
+        //     path.LineTo(abc.X, abc.Y);
+        // }
+
+        // AppCanvas.DrawPath(path, new SKPaint {
+        //     Color = SKColors.Blue,
+        //     IsAntialias = true,
+        //     Style = SKPaintStyle.Stroke,
+        //     StrokeWidth = 2
+        // });
+    }
 
     protected override void OnUpdate() {
-        base.OnUpdate();
-        foreach (Element e in fillGrid.Children) {
-            // e.Transform.LocalRotation += 10f * (float)UpdateTime.DeltaTime;
-        }
+        
     }
 }
 

@@ -83,6 +83,7 @@ public class InputContext(Application app) : AppContext(app) {
             if (HoveredElements.Contains(removingElements[i])) {
                 HoveredElements.Remove(removingElements[i]);
                 removingElements[i].MouseLeave();
+                Console.WriteLine("Leave: " + removingElements[i].GetHashCode());
             }
         }
 
@@ -100,6 +101,7 @@ public class InputContext(Application app) : AppContext(app) {
             if (!HoveredElements.Contains(completed[i])) {
                 HoveredElements.Add(completed[i]);
                 completed[i].MouseEnter();
+                Console.WriteLine("Enter: " + completed[i].GetHashCode());
             }
         }
 
@@ -135,7 +137,7 @@ public class InputContext(Application app) : AppContext(app) {
             PressedElements[button].Clear();
         
         for (int i = InteractingElements.Count - 1; i >= 0; i--) {
-            var x = InteractingElements[i];
+            var x = InteractingElements.ElementAt(i);
             PressedElements[button].Add(x);
             
             if (!x.MouseDown(button))
