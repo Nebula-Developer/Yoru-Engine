@@ -12,9 +12,9 @@ public class InputContext(Application app) : AppContext(app) {
     private readonly Dictionary<Key, int> _releasedKeys = new();
     
     private readonly List<Element> HoveredElements = new();
+    private readonly Dictionary<MouseButton, List<Element>> PressedElements = new();
     private List<Element> InteractingElements = new();
     public int MaskIndex = 0;
-    private readonly Dictionary<MouseButton, List<Element>> PressedElements = new();
     private HashSet<Key> _keys { get; } = new();
     private HashSet<MouseButton> _buttons { get; } = new();
     

@@ -1,7 +1,5 @@
 #nullable disable
 
-using System.Collections.Frozen;
-using System.Collections.Immutable;
 using System.Numerics;
 using SkiaSharp;
 using Yoru.Graphics;
@@ -15,12 +13,12 @@ public class Application {
     private float _canvasScale = 1;
     private RootElement _element;
     public IApplicationHandler Handler { get; set; } = new HeadlessHandler();
-
+    
     public bool FlushRenderer { get; set; } = true;
     public bool ClearCanvas { get; set; } = true;
     public Renderer Renderer { get; set; } = new EmptyRenderer();
     public ElementDrawingMethod DrawingMethod { get; set; } = ElementDrawingMethod.Render;
-
+    
     public Vector2 Size { get; private set; }
     public Vector2 FramebufferSize { get; private set; }
     public SKCanvas AppCanvas {
@@ -35,83 +33,82 @@ public class Application {
                 Resize((int)FramebufferSize.X, (int)FramebufferSize.Y, value);
         }
     }
-
+    
     public TimeContext UpdateTime { get; protected set; }
     public TimeContext RenderTime { get; protected set; }
-
+    
     public InputContext Input { get; protected set; }
     public AnimationContext Animations { get; protected set; }
-
+    
     public RootElement Element {
         get {
             if (_element == null) _element = new(this);
             return _element;
         }
     }
-
+    
     public void Load() {
         Renderer.Load();
         Resize((int)Handler.Size.X, (int)Handler.Size.Y);
-
+        
         Input = new(this);
         Animations = new(this);
-
+        
         Input.Load();
         Animations.Load();
-
+        
         UpdateTime = new(this);
         RenderTime = new(this);
-
+        
         OnLoad();
-
+        
         UpdateTime.Load();
         RenderTime.Load();
     }
-
+    
     public void Update() {
         Input.Update();
         UpdateTime.Update();
         Animations.Update();
-
+        
         Element.Update();
         OnUpdate();
         Input.UpdateCollections();
     }
-
+    
     public void Render() {
-        lock (RenderLock)
-        {
+        lock (RenderLock) {
             RenderTime.Update();
-
+            
             AppCanvas.ResetMatrix();
             AppCanvas.Scale(CanvasScale);
             if (ClearCanvas) AppCanvas.Clear(SKColors.Black);
-
+            
             Element.Render(AppCanvas);
             OnRender();
-
+            
             if (FlushRenderer) Renderer.Flush();
         }
     }
-
+    
     public void ResizeRoot() => Element.Resize((int)Size.X, (int)Size.Y);
-
+    
     public void Resize(int width, int height, float canvasScale) { // Resizing as the actual window frame size, not handling the DPI
         _canvasScale = canvasScale;
-
+        
         FramebufferSize = new(width, height);
         Size = new(width / CanvasScale, height / CanvasScale);
         ResizeRoot();
-
+        
         lock (RenderLock) Renderer.Resize(width, height);
         OnResize(width, height);
     }
-
+    
     public void Resize(int width, int height) => Resize(width, height, CanvasScale);
-
+    
     public void ResizeElement(int width, int height, float canvasScale) => Resize((int)(width * canvasScale), (int)(height * canvasScale), canvasScale);
     public void ResizeElement(int width, int height) => Resize((int)(width * CanvasScale), (int)(height * CanvasScale));
-
+    
     public void KeyDown(Key key) {
         Input.HandleKeyDown(key);
         OnKeyDown(key);
@@ -135,7 +132,7 @@ public class Application {
     public void Close() {
         if (OnClose()) Handler.Close();
     }
-
+    
     protected virtual void OnLoad() { }
     protected virtual void OnUpdate() { }
     protected virtual void OnRender() { }
