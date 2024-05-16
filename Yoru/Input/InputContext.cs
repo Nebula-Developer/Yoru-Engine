@@ -11,9 +11,9 @@ public class InputContext(Application app) : AppContext(app) {
     private readonly Dictionary<MouseButton, int> _releasedButtons = new();
     private readonly Dictionary<Key, int> _releasedKeys = new();
     
-    private readonly List<Element> HoveredElements = new();
+    internal readonly List<Element> HoveredElements = new();
     private readonly Dictionary<MouseButton, List<Element>> PressedElements = new();
-    private List<Element> InteractingElements = new();
+    internal List<Element> InteractingElements = new();
     public int MaskIndex = 0;
     private HashSet<Key> _keys { get; } = new();
     private HashSet<MouseButton> _buttons { get; } = new();
@@ -80,13 +80,12 @@ public class InputContext(Application app) : AppContext(app) {
         }
         
         for (var i = 0; i < removingElements.Count; i++) {
-            // if (PressedElements.Any(x => x.Value.Contains(removingElements[i]))) {
-            //     interactingElements.Add(removingElements[i]);
-            // } else
-            if (HoveredElements.Contains(removingElements[i])) {
+            if (PressedElements.Any(x => x.Value.Contains(removingElements[i]))) {
+                interactingElements.Add(removingElements[i]);
+            } else if (HoveredElements.Contains(removingElements[i])) {
                 HoveredElements.Remove(removingElements[i]);
                 removingElements[i].MouseLeave();
-                Console.WriteLine("Leave: " + removingElements[i].GetHashCode());
+                Console.WriteLine("Leave: " + removingElements[i].GetHashCode());  
             }
         }
         
@@ -115,19 +114,23 @@ public class InputContext(Application app) : AppContext(app) {
         MousePosition = position;
         HandleMouseInteractions();
         
-        List<Element> completedElements = new();
-        for (var i = 0; i < PressedElements.Count; i++) {
-            var list = PressedElements.ElementAt(i).Value;
-            for (var j = 0; j < list.Count; j++) {
-                if (completedElements.Contains(list[j]))
-                    continue;
-                completedElements.Add(list[j]);
-                list[j].MouseMove(position);
-            }
+        // List<Element> completedElements = new();
+        // for (var i = 0; i < PressedElements.Count; i++) {
+        //     var list = PressedElements.ElementAt(i).Value;
+        //     for (var j = 0; j < list.Count; j++) {
+        //         if (completedElements.Contains(list[j]))
+        //             continue;
+        //         completedElements.Add(list[j]);
+        //         list[j].MouseMove(position);
+        //     }
+        // }
+
+        for (var i = 0; i < InteractingElements.Count; i++) {
+            InteractingElements[i].MouseMove(position);
         }
     }
     
-    public void UpdateElementTransform(Element element) => HandleMouseInteractions();
+    public void UpdateElementTransform(Element element) => HandleMouseInteractions(element);
     
     public void HandleMouseDown(MouseButton button) {
         _buttons.Add(button);

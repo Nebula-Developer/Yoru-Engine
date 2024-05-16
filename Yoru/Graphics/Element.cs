@@ -180,9 +180,6 @@ public class Element : IDisposable {
     protected virtual void OnChildRemoved(Element child) { }
     protected virtual void OnTransformChanged() { }
     protected virtual void OnTransformValueChanged() {
-        if (App == null || App.Input == null) return;
-        App?.Input.UpdateElementTransform(this);
-        
         var points = Transform.Matrix.MapPoints(
             new SKPoint[] {
                 new(0, 0),
@@ -198,6 +195,9 @@ public class Element : IDisposable {
             if (i == 0) Path.MoveTo(points[i]);
             else Path.LineTo(points[i]);
         }
+
+        if (App == null || App.Input == null || App.Input.InteractingElements.Contains(this)) return;
+        App?.Input.UpdateElementTransform(this);
     }
     
     public virtual bool PointIntersects(Vector2 position) {
