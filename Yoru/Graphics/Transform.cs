@@ -8,7 +8,6 @@ namespace Yoru.Graphics;
 public class Transform {
     private Element _element;
     
-    private bool _lockValueChange;
     
     public Action DoValueChanged;
     
@@ -39,7 +38,6 @@ public class Transform {
     }
     
     public void UpdateTransforms() {
-        _lockValueChange = true;
         UpdateSize();
         UpdatePosition();
         UpdateRotation();

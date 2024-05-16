@@ -4,7 +4,7 @@ using System.Numerics;
 using Yoru.Graphics;
 using Yoru.Input;
 
-namespace Yoru.ProgramTests;
+namespace Yoru.Elements;
 
 public class DraggableElement : Element {
     private MouseButton? curButton;

@@ -1,8 +1,9 @@
 #nullable disable
 
 using SkiaSharp;
+using Yoru.Graphics;
 
-namespace Yoru.Graphics;
+namespace Yoru.Elements;
 
 public class ImageElement : Element {
     private SKImage _image;
