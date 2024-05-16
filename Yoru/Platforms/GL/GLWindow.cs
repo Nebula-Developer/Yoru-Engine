@@ -52,6 +52,6 @@ public class GLWindow : GameWindow, IApplicationHandler {
     
     protected override void OnMouseDown(MouseButtonEventArgs e) => App.MouseDown((MouseButton)e.Button);
     protected override void OnMouseUp(MouseButtonEventArgs e) => App.MouseUp((MouseButton)e.Button);
-    protected override void OnMouseMove(MouseMoveEventArgs e)
-        => App.MouseMove(Vector2.Clamp(new(MouseState.Position.X / App.CanvasScale * _dpi, MouseState.Position.Y / App.CanvasScale * _dpi), Vector2.Zero, Size));
+    protected override void OnMouseMove(MouseMoveEventArgs e) =>
+        App.MouseMove(Vector2.Clamp(new(MouseState.Position.X, MouseState.Position.Y), Vector2.Zero, new(ClientSize.X, ClientSize.Y)) / App.CanvasScale * _dpi);
 }

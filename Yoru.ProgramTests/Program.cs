@@ -95,38 +95,6 @@ public class MyApp : Application {
             Console.WriteLine(errors);
             return;
         }
-        
-        Element elm = Element;
-        Random rand = new();
-        for (int i = 0; i < 100; i++) {
-            BoxElement x = new BoxElement {
-                Transform = new() {
-                    ParentScale = new(1)
-                },
-                Color = i % 2 == 0 ? new SKColor(255, 0, 0, 50) : new SKColor(0, 0, 255, 50),
-                ZIndex = 5
-            };
-
-            DraggableElement d = new DraggableElement {
-                Transform = new() {
-                    LocalPosition = new(
-                        rand.Next(-10, 10),
-                        rand.Next(-10, 10)
-                    ),
-                    OffsetPosition = new(0.5f),
-                    AnchorPosition = new(0.5f),
-                    Size = new(
-                        rand.Next(10, 100),
-                        rand.Next(10, 100)
-                    )
-                },
-                MaskMouseEvents = false
-            };
-            
-            d.AddChild(x);
-            elm.AddChild(d);
-            elm = elm.Children[0];
-        }
     }
     
     bool direction = false;
@@ -163,6 +131,17 @@ public class MyApp : Application {
         if (fps.Count > 10) fps.RemoveAt(0);
 
         AppCanvas.DrawText("FPS: " + avg, 10, 40, paint);
+        AppCanvas.DrawRect(0, 0, Size.X, Size.Y, new SKPaint {
+            Shader = shader
+        });
+    }
+
+    protected override void OnResize(int width, int height) {
+        base.OnResize(width, height);
+        SKRuntimeEffectUniforms s = new(effect);
+        s["res"] = new float[] { width, height };
+        s["softness"] = 2f;
+        shader = effect?.ToShader(true, s);
     }
 }
 
