@@ -67,11 +67,11 @@ public class InputContext(Application app) : AppContext(app) {
         
         for (var i = 0; i < elements.Count; i++) {
             var element = elements[i];
-
+            
             if (!element.MouseInteraction) continue;
             queue.Enqueue(element);
             if (!element.HandleMouseEvents) continue;
-
+            
             if (element.PointIntersects(MousePosition)) {
                 if (!element.MaskMouseEvents) {
                     removingElements.AddRange(interactingElements);
@@ -88,7 +88,6 @@ public class InputContext(Application app) : AppContext(app) {
             } else if (HoveredElements.Contains(removingElements[i])) {
                 HoveredElements.Remove(removingElements[i]);
                 removingElements[i].MouseLeave();
-                Console.WriteLine("Leave: " + removingElements[i].GetHashCode());  
             }
         }
         
@@ -106,7 +105,6 @@ public class InputContext(Application app) : AppContext(app) {
             if (!HoveredElements.Contains(completed[i])) {
                 HoveredElements.Add(completed[i]);
                 completed[i].MouseEnter();
-                Console.WriteLine("Enter: " + completed[i].GetHashCode());
             }
         }
         
@@ -117,22 +115,10 @@ public class InputContext(Application app) : AppContext(app) {
         MousePosition = position;
         HandleMouseInteractions();
         
-        // List<Element> completedElements = new();
-        // for (var i = 0; i < PressedElements.Count; i++) {
-        //     var list = PressedElements.ElementAt(i).Value;
-        //     for (var j = 0; j < list.Count; j++) {
-        //         if (completedElements.Contains(list[j]))
-        //             continue;
-        //         completedElements.Add(list[j]);
-        //         list[j].MouseMove(position);
-        //     }
-        // }
-
-        for (var i = 0; i < InteractingElements.Count; i++) {
+        for (var i = 0; i < InteractingElements.Count; i++)
             InteractingElements[i].MouseMove(position);
-        }
     }
-
+    
     public void HandleMouseDown(MouseButton button) {
         _buttons.Add(button);
         _pressedButtons.TryGetValue(button, out var count);
