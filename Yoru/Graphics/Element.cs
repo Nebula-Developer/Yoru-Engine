@@ -18,7 +18,9 @@ public class Element : IDisposable {
     
     private int _zIndex;
     public bool Cull { get; set; } = true;
-    public bool ClickThrough { get; set; } = true;
+    public bool MaskMouseEvents { get; set; } = true;
+    public bool HandleMouseEvents { get; set; } = true;
+    public bool MouseInteraction { get; set; } = true;
     public bool ApplyTransformMatrix { get; set; } = true;
     
     public Transform Transform {
@@ -195,9 +197,6 @@ public class Element : IDisposable {
             if (i == 0) Path.MoveTo(points[i]);
             else Path.LineTo(points[i]);
         }
-
-        if (App == null || App.Input == null || App.Input.InteractingElements.Contains(this)) return;
-        App?.Input.UpdateElementTransform(this);
     }
     
     public virtual bool PointIntersects(Vector2 position) {

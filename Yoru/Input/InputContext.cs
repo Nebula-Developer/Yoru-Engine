@@ -67,16 +67,19 @@ public class InputContext(Application app) : AppContext(app) {
         
         for (var i = 0; i < elements.Count; i++) {
             var element = elements[i];
+
+            if (!element.MouseInteraction) continue;
+            queue.Enqueue(element);
+            if (!element.HandleMouseEvents) continue;
+
             if (element.PointIntersects(MousePosition)) {
-                if (!element.ClickThrough) {
+                if (!element.MaskMouseEvents) {
                     removingElements.AddRange(interactingElements);
                     interactingElements.Clear();
                 }
                 
                 interactingElements.Add(element);
-            } else removingElements.Add(element);
-            
-            queue.Enqueue(element);
+            } else if (HoveredElements.Contains(element)) removingElements.Add(element);
         }
         
         for (var i = 0; i < removingElements.Count; i++) {
@@ -129,9 +132,7 @@ public class InputContext(Application app) : AppContext(app) {
             InteractingElements[i].MouseMove(position);
         }
     }
-    
-    public void UpdateElementTransform(Element element) => HandleMouseInteractions(element);
-    
+
     public void HandleMouseDown(MouseButton button) {
         _buttons.Add(button);
         _pressedButtons.TryGetValue(button, out var count);
