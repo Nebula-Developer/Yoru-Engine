@@ -49,7 +49,6 @@ public class Application {
     
     public void Load() {
         Renderer.Load();
-        Resize((int)Handler.Size.X, (int)Handler.Size.Y);
         
         Input = new(this);
         Animations = new(this);
@@ -61,6 +60,7 @@ public class Application {
         RenderTime = new(this);
         
         OnLoad();
+        Resize((int)Handler.Size.X, (int)Handler.Size.Y);
         
         UpdateTime.Load();
         RenderTime.Load();

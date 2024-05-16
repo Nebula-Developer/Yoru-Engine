@@ -120,6 +120,7 @@ public class InputContext(Application app) : AppContext(app) {
     }
     
     public void HandleMouseDown(MouseButton button) {
+        HandleMouseInteractions();
         _buttons.Add(button);
         _pressedButtons.TryGetValue(button, out var count);
         _pressedButtons[button] = count + 1;
@@ -132,9 +133,8 @@ public class InputContext(Application app) : AppContext(app) {
         for (var i = InteractingElements.Count - 1; i >= 0; i--) {
             var x = InteractingElements.ElementAt(i);
             PressedElements[button].Add(x);
-            
-            if (!x.MouseDown(button))
-                break;
+            x.MouseDown(button);
+            if (!x.MaskMouseEvents) break;
         }
     }
     
@@ -149,8 +149,7 @@ public class InputContext(Application app) : AppContext(app) {
         for (var i = PressedElements[button].Count - 1; i >= 0; i--) {
             var x = PressedElements[button][i];
             
-            if (!x.MouseUp(button))
-                break;
+            x.MouseUp(button);
         }
         
         PressedElements[button].Clear();

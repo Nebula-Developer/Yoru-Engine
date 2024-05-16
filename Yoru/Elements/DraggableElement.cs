@@ -17,20 +17,18 @@ public class DraggableElement : Element {
         base.OnLoad();
     }
     
-    protected override bool OnMouseDown(MouseButton button) {
-        if (button != Button) return true;
+    protected override void OnMouseDown(MouseButton button) {
+        if (button != Button) return;
         curButton = Button;
         base.OnMouseDown(button);
         mouseStart = App.Input.MousePosition;
         startPos = Transform.WorldPosition;
-        return true;
     }
     
-    protected override bool OnMouseUp(MouseButton button) {
-        if (curButton == null || button != curButton) return true;
+    protected override void OnMouseUp(MouseButton button) {
+        if (curButton == null || button != curButton) return;
         curButton = null;
         base.OnMouseUp(button);
-        return true;
     }
     
     protected override void OnMouseMove(Vector2 position) {

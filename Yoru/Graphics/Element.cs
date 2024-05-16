@@ -22,6 +22,9 @@ public class Element : IDisposable {
     public bool HandleMouseEvents { get; set; } = true;
     public bool MouseInteraction { get; set; } = true;
     public bool ApplyTransformMatrix { get; set; } = true;
+
+    public bool IsMouseOver { get; private set; }
+    public bool IsMouseDown { get; private set; }
     
     public Transform Transform {
         get {
@@ -172,8 +175,8 @@ public class Element : IDisposable {
     protected virtual void OnUnload() { }
     protected virtual void OnRenderChildren(SKCanvas canvas) => ForChildren(child => child.Render(canvas));
     
-    protected virtual bool OnMouseDown(MouseButton button) => true;
-    protected virtual bool OnMouseUp(MouseButton button) => true;
+    protected virtual void OnMouseDown(MouseButton button) { }
+    protected virtual void OnMouseUp(MouseButton button) { }
     protected virtual void OnMouseMove(Vector2 position) { }
     protected virtual void OnMouseEnter() { }
     protected virtual void OnMouseLeave() { }
@@ -262,11 +265,11 @@ public class Element : IDisposable {
     }
     
     public void Load() => InvokeVirtualPair(OnLoad, DoLoad);
-    public bool MouseDown(MouseButton button) => ReturnVirtualPair(() => OnMouseDown(button), () => DoMouseDown?.Invoke(button));
-    public bool MouseUp(MouseButton button) => ReturnVirtualPair(() => OnMouseUp(button), () => DoMouseUp?.Invoke(button));
+    public void MouseDown(MouseButton button) => InvokeVirtualPair(() => { IsMouseDown = true; OnMouseDown(button); }, () => DoMouseDown?.Invoke(button));
+    public void MouseUp(MouseButton button) => InvokeVirtualPair(() => { IsMouseDown = false; OnMouseUp(button); }, () => DoMouseUp?.Invoke(button));
     public void MouseMove(Vector2 position) => InvokeVirtualPair(() => OnMouseMove(position), () => DoMouseMove?.Invoke(position));
-    public void MouseEnter() => InvokeVirtualPair(OnMouseEnter, DoMouseEnter);
-    public void MouseLeave() => InvokeVirtualPair(OnMouseLeave, DoMouseLeave);
+    public void MouseEnter() => InvokeVirtualPair(() => { IsMouseOver = true; OnMouseEnter(); }, DoMouseEnter);
+    public void MouseLeave() => InvokeVirtualPair(() => { IsMouseOver = false; OnMouseLeave(); }, DoMouseLeave);
     public void ChildAdded(Element child) => InvokeVirtualPair(() => OnChildAdded(child), DoChildAdded);
     public void ChildRemoved(Element child) => InvokeVirtualPair(() => OnChildRemoved(child), DoChildRemoved);
     public void TransformChanged() => InvokeVirtualPair(OnTransformChanged, DoTransformChanged);
