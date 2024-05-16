@@ -29,8 +29,7 @@ public class MyApp : Application {
 
     private readonly BoxElement wrapper = new() {
         Transform = new() {
-            ParentScale = new(1f),
-            LocalRotation = 40
+            ParentScale = new(1f)
         },
         Color = SKColors.White,
         MaskMouseEvents = true
@@ -99,21 +98,23 @@ public class MyApp : Application {
         
         Element elm = Element;
         Random rand = new();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             BoxElement x = new BoxElement {
                 Transform = new() {
                     ParentScale = new(1)
                 },
-                Color = new SKColor(255, 0, 0, 50),
+                Color = i % 2 == 0 ? new SKColor(255, 0, 0, 50) : new SKColor(0, 0, 255, 50),
                 ZIndex = 5
             };
 
             DraggableElement d = new DraggableElement {
                 Transform = new() {
-                    WorldPosition = new(
-                        rand.Next(0, (int)Size.X),
-                        rand.Next(0, (int)Size.Y)
+                    LocalPosition = new(
+                        rand.Next(-10, 10),
+                        rand.Next(-10, 10)
                     ),
+                    OffsetPosition = new(0.5f),
+                    AnchorPosition = new(0.5f),
                     Size = new(
                         rand.Next(10, 100),
                         rand.Next(10, 100)
@@ -126,9 +127,6 @@ public class MyApp : Application {
             elm.AddChild(d);
             elm = elm.Children[0];
         }
-        
-        uniforms = new(effect);
-        MakeShader();
     }
     
     bool direction = false;
@@ -144,25 +142,27 @@ public class MyApp : Application {
 
     protected override void OnKeyDown(Key key) {
         base.OnKeyDown(key);
-        if (key == Key.Space)
+        if (key == Key.G)
             wrapper.MouseInteraction = !wrapper.MouseInteraction;
         else if (key == Key.X)
             DrawingMethod = Enumerated.Next<ElementDrawingMethod>(DrawingMethod);
     }
 
+    List<double> fps = new();
+    SKPaint paint = new SKPaint {
+        Color = SKColors.White,
+        TextSize = 30
+    };
+
     protected override void OnRender() {
         base.OnRender();
-        AppCanvas.DrawRect(0, 0, Size.X, Size.Y, new SKPaint {
-            Shader = shader
-        });
-    }
 
-    protected override void OnResize(int width, int height) => MakeShader();
+        fps.Add(1.0 / RenderTime.DeltaTime);
+        int avg = (int)fps.Average();
 
-    public void MakeShader() {
-        uniforms!["res"] = new float[] { Size.X, Size.Y };
-        uniforms!["softness"] = 2f;
-        shader = effect!.ToShader(true, uniforms);
+        if (fps.Count > 10) fps.RemoveAt(0);
+
+        AppCanvas.DrawText("FPS: " + avg, 10, 40, paint);
     }
 }
 

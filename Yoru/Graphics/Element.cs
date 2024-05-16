@@ -235,12 +235,11 @@ public class Element : IDisposable {
                         var color = new SKColor(
                             (byte) (App.Debugging.RenderDepth % 25 * 10),
                             (byte) (App.Debugging.RenderDepth % 10 * 25),
-                            (byte) (App.Debugging.RenderDepth % 5 * 50)
+                            (byte) (255)
                         );
 
-                        canvas.DrawPath(Path, new() {
+                        canvas.DrawPoints(SKPointMode.Polygon, Path.Points, new() {
                             Color = color,
-                            IsAntialias = true,
                             Style = SKPaintStyle.Stroke,
                             StrokeWidth = 2
                         });

@@ -11,7 +11,7 @@ public class GLWindow : GameWindow, IApplicationHandler {
     private float _dpi = 1;
     public Application App;
     public GLRenderer Renderer;
-    public GLWindow() : base(GameWindowSettings.Default, NativeWindowSettings.Default) { }
+    public GLWindow() : base(new GameWindowSettings() { UpdateFrequency = 300 }, new NativeWindowSettings() { Title = "Yoru App" }) { }
     public GLWindow(GameWindowSettings gws, NativeWindowSettings nws) : base(gws, nws) { }
     
     public new double RenderFrequency { get => base.UpdateFrequency; set => base.UpdateFrequency = value; }
@@ -22,8 +22,6 @@ public class GLWindow : GameWindow, IApplicationHandler {
     
     protected override void OnLoad() {
         base.OnLoad();
-        
-        UpdateFrequency = 200;
         Renderer = new();
         
         App.Handler = this;
