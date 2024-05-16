@@ -39,6 +39,7 @@ public class Application {
     
     public InputContext Input { get; protected set; }
     public AnimationContext Animations { get; protected set; }
+    public DebugContext Debugging { get; protected set; }
     
     public RootElement Element {
         get {
@@ -55,6 +56,7 @@ public class Application {
         
         Input.Load();
         Animations.Load();
+        Debugging = new(this);
         
         UpdateTime = new(this);
         RenderTime = new(this);
@@ -78,6 +80,7 @@ public class Application {
     
     public void Render() {
         lock (RenderLock) {
+            Debugging.Update();
             RenderTime.Update();
             
             AppCanvas.ResetMatrix();

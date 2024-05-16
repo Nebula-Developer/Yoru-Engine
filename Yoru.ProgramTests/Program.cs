@@ -2,7 +2,9 @@
 using SkiaSharp;
 using Yoru;
 using Yoru.Elements;
+using Yoru.Graphics;
 using Yoru.Input;
+using Yoru.Mathematics;
 using Yoru.Platforms.GL;
 
 public class MyApp : Application {
@@ -27,7 +29,8 @@ public class MyApp : Application {
 
     private readonly BoxElement wrapper = new() {
         Transform = new() {
-            ParentScale = new(1f)
+            ParentScale = new(1f),
+            LocalRotation = 40
         },
         Color = SKColors.White,
         MaskMouseEvents = true
@@ -94,6 +97,36 @@ public class MyApp : Application {
             return;
         }
         
+        Element elm = Element;
+        Random rand = new();
+        for (int i = 0; i < 10; i++) {
+            BoxElement x = new BoxElement {
+                Transform = new() {
+                    ParentScale = new(1)
+                },
+                Color = new SKColor(255, 0, 0, 50),
+                ZIndex = 5
+            };
+
+            DraggableElement d = new DraggableElement {
+                Transform = new() {
+                    WorldPosition = new(
+                        rand.Next(0, (int)Size.X),
+                        rand.Next(0, (int)Size.Y)
+                    ),
+                    Size = new(
+                        rand.Next(10, 100),
+                        rand.Next(10, 100)
+                    )
+                },
+                MaskMouseEvents = false
+            };
+            
+            d.AddChild(x);
+            elm.AddChild(d);
+            elm = elm.Children[0];
+        }
+        
         uniforms = new(effect);
         MakeShader();
     }
@@ -111,7 +144,10 @@ public class MyApp : Application {
 
     protected override void OnKeyDown(Key key) {
         base.OnKeyDown(key);
-        wrapper.MouseInteraction = !wrapper.MouseInteraction;
+        if (key == Key.Space)
+            wrapper.MouseInteraction = !wrapper.MouseInteraction;
+        else if (key == Key.X)
+            DrawingMethod = Enumerated.Next<ElementDrawingMethod>(DrawingMethod);
     }
 
     protected override void OnRender() {

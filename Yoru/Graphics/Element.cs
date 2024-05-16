@@ -218,22 +218,28 @@ public class Element : IDisposable {
     
     public void Render(SKCanvas canvas) {
         if (App == null || App.DrawingMethod == ElementDrawingMethod.None) return;
+        App.Debugging.RenderDepth++;
         
         using SKAutoCanvasRestore restore = new(canvas);
-        if (ApplyTransformMatrix) Transform.ApplyToCanvas(canvas);
         
         if (!Cull || ShouldRender(canvas)) {
             switch (App.DrawingMethod) {
                 case ElementDrawingMethod.Render:
+                    if (ApplyTransformMatrix) Transform.ApplyToCanvas(canvas);
                     OnRender(canvas);
                     DoRender?.Invoke(canvas);
                     break;
                 case ElementDrawingMethod.PathOutline:
                     using (SKAutoCanvasRestore restoreWireframe = new(canvas)) {
-                        canvas.ResetMatrix();
-                        canvas.Scale(App.CanvasScale);
-                        canvas.DrawPoints(SKPointMode.Polygon, Path.Points, new() {
-                            Color = SKColors.Blue,
+                        // calculate a color based on App.Debugging.RenderDepth with modulo
+                        var color = new SKColor(
+                            (byte) (App.Debugging.RenderDepth % 25 * 10),
+                            (byte) (App.Debugging.RenderDepth % 10 * 25),
+                            (byte) (App.Debugging.RenderDepth % 5 * 50)
+                        );
+
+                        canvas.DrawPath(Path, new() {
+                            Color = color,
                             IsAntialias = true,
                             Style = SKPaintStyle.Stroke,
                             StrokeWidth = 2
