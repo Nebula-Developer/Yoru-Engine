@@ -8,10 +8,10 @@ using Yoru.Input;
 namespace Yoru.Platforms.GL;
 
 public class GLWindow : GameWindow, IApplicationHandler {
-    private float _dpi = 1;
+    private Vector2 _dpi = Vector2.One;
     public Application App;
     public GLRenderer Renderer;
-    public GLWindow() : base(new GameWindowSettings() { UpdateFrequency = 300 }, new NativeWindowSettings() { Title = "Yoru App", Flags = ContextFlags.Debug }) { }
+    public GLWindow() : base(new GameWindowSettings() { UpdateFrequency = 300 }, new NativeWindowSettings() { Title = "Yoru App", Flags = ContextFlags.ForwardCompatible }) { }
     public GLWindow(GameWindowSettings gws, NativeWindowSettings nws) : base(gws, nws) { }
     
     public new double RenderFrequency { get => base.UpdateFrequency; set => base.UpdateFrequency = value; }
@@ -22,8 +22,9 @@ public class GLWindow : GameWindow, IApplicationHandler {
 
     public Vector2 GetDPI() {
         bool val = TryGetCurrentMonitorScale(out float horizontal, out float vertical);
-        if (!val) return Vector2.One;
-        return new(horizontal, vertical);
+        if (!val) return _dpi = Vector2.One;
+        _dpi = new(horizontal, vertical);
+        return _dpi;
     }
     
     protected override void OnLoad() {
@@ -55,5 +56,7 @@ public class GLWindow : GameWindow, IApplicationHandler {
     protected override void OnMouseDown(MouseButtonEventArgs e) => App.MouseDown((MouseButton)e.Button);
     protected override void OnMouseUp(MouseButtonEventArgs e) => App.MouseUp((MouseButton)e.Button);
     protected override void OnMouseMove(MouseMoveEventArgs e) =>
-        App.MouseMove(Vector2.Clamp(new(MouseState.Position.X, MouseState.Position.Y), Vector2.Zero, new(ClientSize.X, ClientSize.Y)) / App.CanvasScale * _dpi);
+        App.MouseMove(
+            Vector2.Clamp(new(MouseState.Position.X, MouseState.Position.Y), Vector2.Zero, new(ClientSize.X, ClientSize.Y)) * (_dpi / App.CanvasScale)
+        );
 }

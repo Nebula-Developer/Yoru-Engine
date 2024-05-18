@@ -243,7 +243,7 @@ public class MyApp : Application {
 
 public static class Program {
     public static void Main(string[] args) {
-        new GLWindow() {
+        new SDLWindow() {
             App = new MyApp(),
             Title = "My Application"
         }.Run();

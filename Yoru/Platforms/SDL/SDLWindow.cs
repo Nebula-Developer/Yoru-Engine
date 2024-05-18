@@ -128,9 +128,8 @@ public unsafe class SDLWindow : IApplicationHandler {
         if (SDL.Init(Sdl.InitVideo | Sdl.InitEvents) != 0)
             throw new Exception(SDL.GetErrorS());
         
-        SDL.GLSetAttribute(GLattr.ContextMajorVersion, 4);
-        SDL.GLSetAttribute(GLattr.ContextMinorVersion, 1);
         SDL.GLSetAttribute(GLattr.ContextProfileMask, (int)GLprofile.Compatibility);
+        SDL.GLSetAttribute(GLattr.ContextFlags, (int)GLcontextFlag.ForwardCompatibleFlag);
 
         Window = SDL.CreateWindow(Title, Sdl.WindowposCentered, Sdl.WindowposCentered, 800, 600, (uint)WindowFlags.Opengl);
         GLA = GL.GetApi(x => (IntPtr)SDL.GLGetProcAddress(x));

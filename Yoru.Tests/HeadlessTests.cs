@@ -27,13 +27,13 @@ public class HeadlessTests(ITestOutputHelper output) {
         
         app.Element.AddChild(box);
         
-        app.CanvasScale = 2;
+        app.CanvasScale = new(2);
         app.Load();
-        app.CanvasScale = 4;
+        app.CanvasScale = new(4);
         app.Resize(1920, 1080);
-        app.CanvasScale = 6;
+        app.CanvasScale = new(6);
         app.Render();
-        app.CanvasScale = 8;
+        app.CanvasScale = new(8);
         
         Assert.Equal(1920 / 8, app.Element.Transform.Size.X);
         Assert.Equal(1920, app.FramebufferSize.X);
