@@ -3,7 +3,7 @@ using System.Reflection;
 using SkiaSharp;
 using Yoru.Elements;
 using Yoru.Graphics;
-using Yoru.Mathematics;
+using Yoru.Utilities;
 
 namespace Yoru.ProgramTests;
 
@@ -51,7 +51,7 @@ public class EasingTestApp : Application {
         var ease = (Func<double, double>)methods[0].CreateDelegate(typeof(Func<double, double>));
         methodName.Text = methods[0].Name;
         
-        Animations.Add(new() {
+        Animations.Start(new() {
             Duration = 5,
             LoopMode = AnimationLoopMode.Forward,
             OnUpdate = t => {

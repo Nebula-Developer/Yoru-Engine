@@ -1,11 +1,14 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using SkiaSharp;
 using Yoru;
 using Yoru.Elements;
 using Yoru.Graphics;
 using Yoru.Input;
-using Yoru.Mathematics;
+using Yoru.Utilities;
 using Yoru.Platforms.GL;
+using System.Reflection;
+using System.Text;
 
 public class MyApp : Application {
     private readonly BoxElement box3 = new() {
@@ -44,6 +47,16 @@ public class MyApp : Application {
         ZIndex = 6
     };
 
+    public PathElement path = new() {
+        Color = SKColors.Red,
+        StrokeWidth = 5,
+        Transform = new() {
+            OffsetPosition = new(1),
+            AnchorPosition = new(1)
+        },
+        Style = SKPaintStyle.Stroke
+    };
+
     SKRuntimeEffect? effect;
     SKRuntimeEffectUniforms? uniforms;
     SKShader? shader;
@@ -53,6 +66,7 @@ public class MyApp : Application {
         wrapper.AddChild(box3);
         box4Wrapper.AddChild(box4);
         wrapper.AddChild(box4Wrapper);
+        wrapper.AddChild(path);
         Element.AddChild(wrapper);
         
         box4Wrapper.MaskMouseEvents = false;
@@ -60,52 +74,38 @@ public class MyApp : Application {
         box4Wrapper.DoMouseDown += (_) => box4.Color = SKColors.Yellow;
         box4Wrapper.DoMouseUp += (_) => box4.Color = SKColors.Green;
 
-        effect = SKRuntimeEffect.Create(
-            """
-            uniform vec2 res;
-            uniform float softness;
+        effect = Resources.LoadEffect("Shaders/stripe.sksl");
 
-            float distance(vec2 a, vec2 b) {
-                return sqrt(pow(a.x - b.x, 2.0) + pow(a.y - b.y, 2.0));
-            }
-
-            float smoothstep(float edge0, float edge1, float x) {
-                float t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
-                return t * t * (3.0 - 2.0 * t);
-            }
-
-            half4 main(vec2 fragCoord) {
-                vec2 center = res / 2.0;
-                
-                float distX = abs(fragCoord.x - center.x) / (res.x / 2.0);
-                float distY = abs(fragCoord.y - center.y) / (res.y / 2.0);
-                
-                float vignette = 1.0 - (max(1.0 - distX * distX / softness, 0.0) * max(1.0 - distY * distY / softness, 0.0));
-                vignette = smoothstep(0.0, 1.0, vignette); 
-                
-                return half4(0.0, 0.0, 0.0, vignette);
-            }
-            """,
-
-            out string errors
-        );
-
-
-        if (errors != null) {
-            Console.WriteLine(errors);
+        if (effect == null) {
+            Console.WriteLine("Failed to load effect");
+            Close();
             return;
         }
+
+        uniforms = new(effect);
+        uniforms["stripeColor"] = new float[] { 1.0f, 0.0f, 1.0f, 0.1f };
+        uniforms["bgColor"] = new float[] { 0.0f, 0.0f, 1.0f, 0.5f };
+        uniforms["speed"] = 40f;
+        uniforms["stripeWidth"] = 30f;
+        uniforms["stripeGap"] = 30f;
+
+        Animations.Start(new Animation() {
+            Duration = 1,
+            LoopMode = AnimationLoopMode.PingPong,
+            Easing = Easing.BounceOut,
+            OnUpdate = (t) => {
+                box3.Transform.Size = new((float)t * 100 + 50);
+                box3.Transform.LocalRotation = (float)t * 360;
+            }
+        });
     }
     
     bool direction = false;
     protected override void OnUpdate() {
         base.OnUpdate();
-        if (!box4Wrapper.IsMouseDown)
-            box4Wrapper.Transform.LocalPosition += (direction ? 1 : -1) * new Vector2((float)Math.Sin(UpdateTime.DeltaTime) * 500f, 0);
-        if (box4Wrapper.Transform.WorldPosition.X > Size.X - 50 || box4Wrapper.Transform.WorldPosition.X < 0) {
-            direction = !direction;
-            box4Wrapper.Transform.WorldPosition = new Vector2(Math.Clamp(box4Wrapper.Transform.WorldPosition.X, 0, Size.X - 50), box4Wrapper.Transform.WorldPosition.Y);
-        }
+
+        uniforms!["time"] = (float)UpdateTime.Time;
+        shader = effect?.ToShader(true, uniforms);
     }
 
     protected override void OnKeyDown(Key key) {
@@ -114,23 +114,34 @@ public class MyApp : Application {
             wrapper.MouseInteraction = !wrapper.MouseInteraction;
         else if (key == Key.X)
             DrawingMethod = Enumerated.Next<ElementDrawingMethod>(DrawingMethod);
+        else if (key == Key.J)
+            Handler.RenderFrequency = Handler.RenderFrequency == 60 ? 1 : 60;
     }
 
     List<double> fps = new();
     SKPaint paint = new SKPaint {
-        Color = SKColors.White,
+        Color = SKColors.Gray,
         TextSize = 30
     };
 
+    float xPos = 0;
+    List<Vector2> Points = new();
     protected override void OnRender() {
         base.OnRender();
 
         fps.Add(1.0 / RenderTime.DeltaTime);
         int avg = (int)fps.Average();
 
-        if (fps.Count > 10) fps.RemoveAt(0);
+        Points.Add(new Vector2(xPos, (avg / 300) * 100));
+        path.Points = Points.ToArray();
+        xPos += 1;
+        if (fps.Count > 10) {
+            Points.RemoveAt(0);
+            fps.RemoveAt(0);
+        }
 
         AppCanvas.DrawText("FPS: " + avg, 10, 40, paint);
+        AppCanvas.DrawText("FRAME: " + Debugging.FrameCount, 10, 80, paint);
         AppCanvas.DrawRect(0, 0, Size.X, Size.Y, new SKPaint {
             Shader = shader
         });
@@ -138,10 +149,8 @@ public class MyApp : Application {
 
     protected override void OnResize(int width, int height) {
         base.OnResize(width, height);
-        SKRuntimeEffectUniforms s = new(effect);
-        s["res"] = new float[] { width, height };
-        s["softness"] = 2f;
-        shader = effect?.ToShader(true, s);
+        uniforms!["res"] = new float[] { width / CanvasScale, height / CanvasScale };
+        shader = effect?.ToShader(true, uniforms);
     }
 }
 
