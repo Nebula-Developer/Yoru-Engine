@@ -10,7 +10,7 @@ namespace Yoru;
 
 public class Application {
     public readonly object RenderLock = new();
-    private float _canvasScale = 1;
+    private Vector2 _canvasScale = Vector2.One;
     private RootElement _element;
     public IApplicationHandler Handler { get; set; } = new HeadlessHandler();
     
@@ -24,10 +24,10 @@ public class Application {
     public SKCanvas AppCanvas {
         get => Renderer.Surface.Canvas;
     }
-    public float CanvasScale {
+    public Vector2 CanvasScale {
         get => _canvasScale;
         set {
-            value = MathF.Max(value, 0.1f);
+            value = new(MathF.Max(value.X, 1), MathF.Max(value.Y, 1));
             _canvasScale = value;
             if (Renderer.Surface != null)
                 Resize((int)FramebufferSize.X, (int)FramebufferSize.Y, value);
@@ -38,6 +38,7 @@ public class Application {
     public TimeContext RenderTime { get; protected set; }
     
     public InputContext Input { get; protected set; }
+
     public AnimationContext Animations { get; protected set; }
     public DebugContext Debugging { get; protected set; }
     
@@ -51,8 +52,8 @@ public class Application {
     public void Load() {
         Renderer.Load();
         
-        Input = new(this);
         Animations = new(this);
+        Input = new(this);
         
         Input.Load();
         Animations.Load();
@@ -84,7 +85,7 @@ public class Application {
             RenderTime.Update();
             
             AppCanvas.ResetMatrix();
-            AppCanvas.Scale(CanvasScale);
+            AppCanvas.Scale(CanvasScale.X, CanvasScale.Y);
             if (ClearCanvas) AppCanvas.Clear(SKColors.Black);
             
             Element.Render(AppCanvas);
@@ -96,11 +97,11 @@ public class Application {
     
     public void ResizeRoot() => Element.Resize((int)Size.X, (int)Size.Y);
     
-    public void Resize(int width, int height, float canvasScale) { // Resizing as the actual window frame size, not handling the DPI
+    public void Resize(int width, int height, Vector2 canvasScale) { // Resizing as the actual window frame size, not handling the DPI
         _canvasScale = canvasScale;
         
         FramebufferSize = new(width, height);
-        Size = new(width / CanvasScale, height / CanvasScale);
+        Size = new(width / CanvasScale.X, height / CanvasScale.Y);
         ResizeRoot();
         
         lock (RenderLock) Renderer.Resize(width, height);
@@ -109,8 +110,8 @@ public class Application {
     
     public void Resize(int width, int height) => Resize(width, height, CanvasScale);
     
-    public void ResizeElement(int width, int height, float canvasScale) => Resize((int)(width * canvasScale), (int)(height * canvasScale), canvasScale);
-    public void ResizeElement(int width, int height) => Resize((int)(width * CanvasScale), (int)(height * CanvasScale));
+    public void ResizeElement(int width, int height, Vector2 canvasScale) => Resize((int)(width * canvasScale.X), (int)(height * canvasScale.Y), canvasScale);
+    public void ResizeElement(int width, int height) => Resize((int)(width * CanvasScale.X), (int)(height * CanvasScale.Y));
     
     public void KeyDown(Key key) {
         Input.HandleKeyDown(key);
