@@ -6,6 +6,7 @@ using Yoru.Graphics;
 using Yoru.Input;
 using Yoru.Mathematics;
 using Yoru.Platforms.GL;
+using Yoru.Platforms.SDL;
 
 public class Snowflake : CircleElement {
     public float Speed = 300;
@@ -242,8 +243,9 @@ public class MyApp : Application {
 
 public static class Program {
     public static void Main(string[] args) {
-        new GLWindow {
-            App = new MyApp()
+        new GLWindow() {
+            App = new MyApp(),
+            Title = "My Application"
         }.Run();
     }
 }
