@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "NebulaDev",
+    "classifications": [
+        "Game Development",
+        "2D Application Framework"
+    ],
+    "name": "Yoru App",
+    "description": "A template for creating a crossplatform application with Yoru Engine",
+    "shortName": "yoruapp",
+    "sourceName": "YoruApp",
+    "identity": "YoruApp",
+    "preferNameDirectory": false,
+    "preferDefaultName": true,
+    "defaultName": "MyYoruApp",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    }
+}
