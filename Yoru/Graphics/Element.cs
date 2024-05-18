@@ -24,7 +24,8 @@ public class Element : IDisposable {
     public bool ApplyTransformMatrix { get; set; } = true;
 
     public bool IsMouseOver { get; private set; }
-    public bool IsMouseDown { get; private set; }
+    public Dictionary<MouseButton, bool> IsButtonDown { get; private set; } = new();
+    public bool IsMouseDown => IsButtonDown.Any(pair => pair.Value);
     
     public Transform Transform {
         get {
@@ -270,8 +271,8 @@ public class Element : IDisposable {
     }
     
     public void Load() => InvokeVirtualPair(OnLoad, DoLoad);
-    public void MouseDown(MouseButton button) => InvokeVirtualPair(() => { IsMouseDown = true; OnMouseDown(button); }, () => DoMouseDown?.Invoke(button));
-    public void MouseUp(MouseButton button) => InvokeVirtualPair(() => { IsMouseDown = false; OnMouseUp(button); }, () => DoMouseUp?.Invoke(button));
+    public void MouseDown(MouseButton button) => InvokeVirtualPair(() => { IsButtonDown[button] = true; OnMouseDown(button); }, () => DoMouseDown?.Invoke(button));
+    public void MouseUp(MouseButton button) => InvokeVirtualPair(() => { IsButtonDown[button] = false; OnMouseUp(button); }, () => DoMouseUp?.Invoke(button));
     public void MouseMove(Vector2 position) => InvokeVirtualPair(() => OnMouseMove(position), () => DoMouseMove?.Invoke(position));
     public void MouseEnter() => InvokeVirtualPair(() => { IsMouseOver = true; OnMouseEnter(); }, DoMouseEnter);
     public void MouseLeave() => InvokeVirtualPair(() => { IsMouseOver = false; OnMouseLeave(); }, DoMouseLeave);

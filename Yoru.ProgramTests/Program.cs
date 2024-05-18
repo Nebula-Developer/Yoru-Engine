@@ -7,6 +7,58 @@ using Yoru.Input;
 using Yoru.Mathematics;
 using Yoru.Platforms.GL;
 
+public class Snowflake : CircleElement {
+    public float Speed = 300;
+
+    protected override void OnLoad() {
+        base.OnLoad();
+        Transform.LocalPosition = new Vector2(new Random().Next(0, (int)App.Size.X), new Random().Next(0, (int)App.Size.Y));
+    }
+
+    protected override void OnUpdate() {
+        base.OnUpdate();
+
+        Transform.LocalPosition += new Vector2(0, Speed * (float)App.UpdateTime.DeltaTime);
+
+        if (Transform.WorldPosition.Y - Transform.Size.Y > App.Size.Y)
+            Transform.LocalPosition = new Vector2(new Random().Next(0, (int)App.Size.X), -Transform.Size.Y);
+    }
+}
+
+public class SnowflakeOverlay : ColorableElement {
+    public List<Tuple<Vector2, float>> Points = new(); // they are from 0 to 1
+    public int Count = 100;
+    public float Scale = 1f;
+    
+    protected override void OnRender(SKCanvas canvas) {
+        for (int i = 0; i < Points.Count; i++) {
+            Vector2 pos = (Points[i].Item1 * new Vector2(Transform.Size.X, Transform.Size.Y + Scale * 2)) - new Vector2(0, Scale);
+            canvas.DrawCircle(new(pos.X, pos.Y), Scale, Paint);
+
+            Points[i] = new(Points[i].Item1 + new Vector2(0, Points[i].Item2) * (float)App.UpdateTime.DeltaTime, Points[i].Item2);
+            if (Points[i].Item1.Y > 1) Points.RemoveAt(i);
+        }
+
+        while (Points.Count < Count) {
+            Points.Add(new(new Vector2(
+                new Random().Next(0, 100) / 100f,
+                0
+            ), new Random().Next(10, 20) / 100f));
+        }
+    }
+
+    protected override void OnLoad() {
+        base.OnLoad();
+
+        for (int i = 0; i < Count; i++) {
+            Points.Add(new(new Vector2(
+                new Random().Next(0, 100) / 100f,
+                new Random().Next(0, 100) / 100f
+            ), new Random().Next(10, 20) / 100f));
+        }
+    }
+}
+
 public class MyApp : Application {
     private readonly BoxElement box3 = new() {
         Transform = new() {
@@ -39,9 +91,33 @@ public class MyApp : Application {
         Transform = new() {
             OffsetPosition = new(0.5f),
             AnchorPosition = new(0.5f),
-            Size = new(50)
+            Size = new(50),
         },
         ZIndex = 6
+    };
+
+    private readonly TextElement fpsText = new() {
+        Transform = new() {
+            OffsetPosition = new(1, 0),
+            AnchorPosition = new(1, 0),
+            LocalPosition = new(-10, 10)
+        },
+        Text = "FPS: 0",
+        TextSize = 30,
+        ZIndex = 1000,
+        Color = SKColors.Black
+    };
+
+    SnowflakeOverlay overlay = new() {
+        Transform = new() {
+            ScaleHeight = true,
+            ScaleWidth = true
+        },
+        ZIndex = 10,
+        Count = 50,
+        Scale = 5,
+        Color = new SKColor(128, 128, 128, 50),
+        MouseInteraction = false
     };
 
     SKRuntimeEffect? effect;
@@ -54,11 +130,19 @@ public class MyApp : Application {
         box4Wrapper.AddChild(box4);
         wrapper.AddChild(box4Wrapper);
         Element.AddChild(wrapper);
+        wrapper.AddChild(overlay);
+        Element.AddChild(fpsText);
         
         box4Wrapper.MaskMouseEvents = false;
         
-        box4Wrapper.DoMouseDown += (_) => box4.Color = SKColors.Yellow;
-        box4Wrapper.DoMouseUp += (_) => box4.Color = SKColors.Green;
+        box4Wrapper.DoMouseDown += (x) => {
+            if (x != MouseButton.Left) return;
+            box4.Color = SKColors.Yellow;
+        };
+        box4Wrapper.DoMouseUp += (x) => {
+            if (x != MouseButton.Left) return;
+            box4.Color = SKColors.Green;
+        };
 
         effect = SKRuntimeEffect.Create(
             """
@@ -114,6 +198,12 @@ public class MyApp : Application {
             wrapper.MouseInteraction = !wrapper.MouseInteraction;
         else if (key == Key.X)
             DrawingMethod = Enumerated.Next<ElementDrawingMethod>(DrawingMethod);
+        else if (key == Key.U)
+            Handler.UpdateFrequency += 10;
+        else if (key == Key.J)
+            Handler.UpdateFrequency -= 10;
+        else if (key == Key.R)
+            Handler.UpdateFrequency = 60;
     }
 
     List<double> fps = new();
@@ -134,6 +224,8 @@ public class MyApp : Application {
         AppCanvas.DrawRect(0, 0, Size.X, Size.Y, new SKPaint {
             Shader = shader
         });
+
+        fpsText.Text = "FPS: " + avg;
     }
 
     protected override void OnResize(int width, int height) {
@@ -142,6 +234,9 @@ public class MyApp : Application {
         s["res"] = new float[] { width, height };
         s["softness"] = 2f;
         shader = effect?.ToShader(true, s);
+
+
+        overlay.Scale = Math.Max(Math.Max(width, height) / 300f, 1);
     }
 }
 
