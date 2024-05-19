@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Yoru" Version="1.0.0-alpha.1" />
+    <PackageReference Include="Yoru" Version="*-*" />
   </ItemGroup>
 
 </Project>

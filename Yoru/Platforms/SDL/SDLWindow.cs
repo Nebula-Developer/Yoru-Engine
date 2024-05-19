@@ -129,7 +129,9 @@ public unsafe class SDLWindow : IApplicationHandler {
             throw new Exception(SDL.GetErrorS());
         
         SDL.GLSetAttribute(GLattr.ContextProfileMask, (int)GLprofile.Compatibility);
-        SDL.GLSetAttribute(GLattr.ContextFlags, (int)GLcontextFlag.ForwardCompatibleFlag);
+        
+        if (Environment.OSVersion.Platform == PlatformID.MacOSX)
+            SDL.GLSetAttribute(GLattr.ContextFlags, (int)GLcontextFlag.ForwardCompatibleFlag);
 
         Window = SDL.CreateWindow(Title, Sdl.WindowposCentered, Sdl.WindowposCentered, 800, 600, (uint)WindowFlags.Opengl);
         GLA = GL.GetApi(x => (IntPtr)SDL.GLGetProcAddress(x));

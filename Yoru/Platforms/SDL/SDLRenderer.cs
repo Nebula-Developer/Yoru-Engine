@@ -14,6 +14,8 @@ public class SDLRenderer : Renderer {
     public override void Load() {
         base.Load();
         _context = GRContext.CreateGl();
+        if (_context == null)
+            throw new Exception("Failed to create SkiaSharp GL context");
         Resize(800, 600);
     }
 
