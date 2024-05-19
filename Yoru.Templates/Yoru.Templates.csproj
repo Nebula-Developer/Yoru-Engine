@@ -6,7 +6,7 @@
     <Title>Yoru Templates</Title>
     <Authors>NebulaDev</Authors>
     <Description>Templates for creating crossplatform Yoru applications</Description>
-    <PackageTags>yoru, templates, crossplatform, game, application, 2d, framework</PackageTags>
+    <PackageTags>graphics, audio, software, game, framework, crossplatform</PackageTags>
     <PackageProjectUrl>https://github.com/nebula-developer/yoru-engine</PackageProjectUrl>
 
     <PackageType>Template</PackageType>
@@ -16,7 +16,8 @@
     <ContentTargetFolders>content</ContentTargetFolders>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
     <NoDefaultExcludes>true</NoDefaultExcludes>
-    <PackageReadmeFile>..\README.md</PackageReadmeFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -33,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\README.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 
 </Project>

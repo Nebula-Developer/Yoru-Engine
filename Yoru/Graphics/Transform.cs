@@ -58,8 +58,8 @@ public class Transform {
     
     public void UpdateMatrix() {
         Matrix = SKMatrix.CreateIdentity();
-        Matrix = Matrix.PostConcat(SKMatrix.CreateTranslation(WorldPosition.X, WorldPosition.Y));
         Matrix = Matrix.PostConcat(SKMatrix.CreateRotationDegrees(WorldRotation, Size.X * RotationOffset.X, Size.Y * RotationOffset.Y));
+        Matrix = Matrix.PostConcat(SKMatrix.CreateTranslation(WorldPosition.X, WorldPosition.Y));
     }
     
     #region Size
