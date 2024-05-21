@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using SkiaSharp;
-using Yoru;
 using Yoru.Elements;
 using Yoru.Input;
 using Yoru.Platforms.GL;
@@ -43,7 +42,7 @@ public class SnowflakeOverlay : PaintedElement {
 }
 
 public class MyApp : Application {
-    private readonly BoxElement box3 = new() {
+    private readonly BoxElement _box3 = new() {
         Transform = new() {
             OffsetPosition = new(0.5f),
             AnchorPosition = new(0.5f),
@@ -54,7 +53,7 @@ public class MyApp : Application {
         MaskMouseEvents = false
     };
     
-    private readonly BoxElement box4 = new() {
+    private readonly BoxElement _box4 = new() {
         Transform = new() {
             ParentScale = Vector2.One
         },
@@ -62,7 +61,7 @@ public class MyApp : Application {
         MaskMouseEvents = true
     };
     
-    private readonly DraggableElement box4Wrapper = new() {
+    private readonly DraggableElement _box4Wrapper = new() {
         Transform = new() {
             OffsetPosition = new(0.5f),
             AnchorPosition = new(0.5f),
@@ -72,7 +71,7 @@ public class MyApp : Application {
         ZIndex = 6
     };
     
-    private readonly TextElement fpsText = new() {
+    private readonly TextElement _fpsText = new() {
         Transform = new() {
             OffsetPosition = new(1, 0),
             AnchorPosition = new(1, 0),
@@ -84,7 +83,7 @@ public class MyApp : Application {
         Color = SKColors.Black
     };
     
-    private readonly BoxElement wrapper = new() {
+    private readonly BoxElement _wrapper = new() {
         Transform = new() {
             ParentScale = new(1f)
         },
@@ -92,11 +91,11 @@ public class MyApp : Application {
         MaskMouseEvents = true
     };
     
-    private SKRuntimeEffect? effect;
+    private SKRuntimeEffect? _effect;
     
-    private readonly List<double> fps = new();
+    private readonly List<double> _fps = new();
     
-    private readonly SnowflakeOverlay overlay = new() {
+    private readonly SnowflakeOverlay _overlay = new() {
         Transform = new() {
             ScaleHeight = true,
             ScaleWidth = true
@@ -107,34 +106,34 @@ public class MyApp : Application {
         Color = new(128, 128, 128, 50),
         MouseInteraction = false
     };
-    private readonly SKPaint paint = new() {
+    private readonly SKPaint _paint = new() {
         Color = SKColors.White,
         TextSize = 30
     };
-    private SKShader? shader;
+    private SKShader? _shader;
     
     protected override void OnLoad() {
         base.OnLoad();
-        wrapper.AddChild(box3);
-        box4Wrapper.AddChild(box4);
-        wrapper.AddChild(box4Wrapper);
-        Element.AddChild(wrapper);
-        wrapper.AddChild(overlay);
+        _wrapper.AddChild(_box3);
+        _box4Wrapper.AddChild(_box4);
+        _wrapper.AddChild(_box4Wrapper);
+        Element.AddChild(_wrapper);
+        _wrapper.AddChild(_overlay);
         
-        box4Wrapper.MaskMouseEvents = false;
+        _box4Wrapper.MaskMouseEvents = false;
         
-        box4Wrapper.DoMouseDown += x => {
+        _box4Wrapper.DoMouseDown += x => {
             if (x != MouseButton.Left) return;
-            box4.Color = SKColors.White;
+            _box4.Color = SKColors.White;
             // box4Wrapper.Transform.LocalRotation += 45;
         };
         
-        box4Wrapper.DoMouseUp += x => {
+        _box4Wrapper.DoMouseUp += x => {
             if (x != MouseButton.Left) return;
-            box4.Color = SKColors.Gray;
+            _box4.Color = SKColors.Gray;
         };
         
-        effect = SKRuntimeEffect.Create(
+        _effect = SKRuntimeEffect.Create(
             Resources.LoadResourceFileS("shaders/vignette.sksl"),
             out var errors
         );
@@ -148,7 +147,7 @@ public class MyApp : Application {
     protected override void OnKeyDown(Key key) {
         base.OnKeyDown(key);
         if (key == Key.G)
-            wrapper.MouseInteraction = !wrapper.MouseInteraction;
+            _wrapper.MouseInteraction = !_wrapper.MouseInteraction;
         else if (key == Key.X)
             DrawingMethod = Enumerated.Next(DrawingMethod);
         else if (key == Key.U)
@@ -162,47 +161,47 @@ public class MyApp : Application {
     protected override void OnRender() {
         base.OnRender();
         
-        fps.Add(1.0 / RenderTime.DeltaTime);
-        var avg = (int)fps.Average();
+        _fps.Add(1.0 / RenderTime.DeltaTime);
+        var avg = (int)_fps.Average();
         
-        if (fps.Count > 10) fps.RemoveAt(0);
+        if (_fps.Count > 10) _fps.RemoveAt(0);
         
-        AppCanvas.DrawText("FPS: " + avg, 10, 40, paint);
+        AppCanvas.DrawText("FPS: " + avg, 10, 40, _paint);
         AppCanvas.DrawRect(0, 0, Size.X, Size.Y, new() {
-            Shader = shader
+            Shader = _shader
         });
         
-        fpsText.Text = "FPS: " + avg;
+        _fpsText.Text = "FPS: " + avg;
     }
     
     protected override void OnUpdate() {
         base.OnUpdate();
         // make box rotate towards center
         var angle = (float)Math.Atan2(
-            Size.Y / 2 - box4Wrapper.Transform.WorldPosition.Y,
-            Size.X / 2 - box4Wrapper.Transform.WorldPosition.X
+            Size.Y / 2 - _box4Wrapper.Transform.WorldPosition.Y,
+            Size.X / 2 - _box4Wrapper.Transform.WorldPosition.X
         );
         
-        box4Wrapper.Transform.LocalRotation = angle * 180 / MathF.PI;
+        _box4Wrapper.Transform.LocalRotation = angle * 180 / MathF.PI;
     }
     
     protected override void OnResize(int width, int height) {
         base.OnResize(width, height);
-        SKRuntimeEffectUniforms s = new(effect);
+        SKRuntimeEffectUniforms s = new(_effect);
         s["res"] = new[] { width / CanvasScale.X, height / CanvasScale.Y };
         s["power"] = 10f;
         s["extend"] = 0.2f;
         s["color"] = new float[] { 0, 0, 0 };
-        shader = effect?.ToShader(true, s);
+        _shader = _effect?.ToShader(true, s);
         
         
-        overlay.Scale = Math.Max(Math.Max(width, height) / 300f, 1);
+        _overlay.Scale = Math.Max(Math.Max(width, height) / 300f, 1);
     }
 }
 
 public static class Program {
     public static void Main(string[] args) {
-        new GLWindow {
+        new GlWindow {
             App = new MyApp(),
             Title = "My Application"
         }.Run();

@@ -22,7 +22,7 @@ public class CanvasIsolationElement : Element {
     
     protected override void OnTransformChanged() {
         base.OnTransformChanged();
-        Transform.ProcessSizeChanged += size => ResizeSurface();
+        Transform.ProcessSizeChanged += _ => ResizeSurface();
     }
     
     protected override void OnLoad() {

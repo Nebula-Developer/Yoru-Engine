@@ -17,7 +17,7 @@ public static class Resources {
     }
     
     public static byte[]? LoadFile(string path) {
-        if (Data.LoadResource(path) is byte[] data)
+        if (Data.LoadResource(path) is { } data)
             return data;
         
         if (!File.Exists(path))

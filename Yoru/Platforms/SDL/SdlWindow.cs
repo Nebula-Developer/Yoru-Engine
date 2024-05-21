@@ -9,19 +9,18 @@ namespace Yoru.Platforms.SDL;
 using GL = Silk.NET.OpenGL.GL;
 using MouseButton = MouseButton;
 
-public unsafe class SDLWindow : IApplicationHandler {
-    private float _dpi = 1;
+public unsafe class SdlWindow : IApplicationHandler {
     private double _renderFrequency = 300;
     private string _title = "Yoru App";
     public Application App;
-    public SDLRenderer Renderer;
+    public SdlRenderer Renderer;
     
     public bool Open { get; set; } = true;
     
     public Window* Window { get; private set; }
     public void* Context { get; private set; }
-    public Sdl SDL { get; } = Sdl.GetApi();
-    public GL GLA { get; private set; }
+    public Sdl Sdl { get; } = Sdl.GetApi();
+    public GL Gl { get; private set; }
     public void Close() => Open = false;
     
     public double RenderFrequency {
@@ -31,9 +30,9 @@ public unsafe class SDLWindow : IApplicationHandler {
     public double UpdateFrequency { get => RenderFrequency; set => RenderFrequency = value; }
     
     public string Title {
-        get => SDL.GetWindowTitleS(Window);
+        get => Sdl.GetWindowTitleS(Window);
         set {
-            SDL.SetWindowTitle(Window, value);
+            Sdl.SetWindowTitle(Window, value);
             _title = value;
         }
     }
@@ -41,10 +40,10 @@ public unsafe class SDLWindow : IApplicationHandler {
     public Vector2 Size {
         get {
             int x, y;
-            SDL.GetWindowSize(Window, &x, &y);
+            Sdl.GetWindowSize(Window, &x, &y);
             return new(x, y);
         }
-        set => SDL.SetWindowSize(Window, (int)value.X, (int)value.Y);
+        set => Sdl.SetWindowSize(Window, (int)value.X, (int)value.Y);
     }
     
     public MouseButton GetMouseButton(byte button) {
@@ -62,16 +61,14 @@ public unsafe class SDLWindow : IApplicationHandler {
     }
     
     public Key GetKey(int key) {
-        var enumSub = Enum.GetName(typeof(KeyCode), key).Substring(1);
+        var enumSub = Enum.GetName(typeof(KeyCode), key)?[1..];
         if (Enum.TryParse("D" + enumSub, out Key dRes))
             return dRes;
         
         if (Enum.TryParse(enumSub, out Key kRes))
             return kRes;
         
-        var K = (KeyCode)key;
-        
-        return K switch {
+        return (KeyCode)key switch {
             KeyCode.KReturn => Key.Enter,
             KeyCode.KBackquote => Key.GraveAccent,
             KeyCode.KLshift => Key.LeftShift,
@@ -116,23 +113,23 @@ public unsafe class SDLWindow : IApplicationHandler {
     }
     
     public void Run() {
-        if (SDL.Init(Sdl.InitVideo | Sdl.InitEvents) != 0)
-            throw new(SDL.GetErrorS());
+        if (Sdl.Init(Sdl.InitVideo | Sdl.InitEvents) != 0)
+            throw new(Sdl.GetErrorS());
         
-        SDL.GLSetAttribute(GLattr.ContextProfileMask, (int)GLprofile.Compatibility);
+        Sdl.GLSetAttribute(GLattr.ContextProfileMask, (int)GLprofile.Compatibility);
         
         if (Environment.OSVersion.Platform == PlatformID.MacOSX)
-            SDL.GLSetAttribute(GLattr.ContextFlags, (int)GLcontextFlag.ForwardCompatibleFlag);
+            Sdl.GLSetAttribute(GLattr.ContextFlags, (int)GLcontextFlag.ForwardCompatibleFlag);
         
-        Window = SDL.CreateWindow(Title, Sdl.WindowposCentered, Sdl.WindowposCentered, 800, 600, (uint)WindowFlags.Opengl);
-        GLA = GL.GetApi(x => (IntPtr)SDL.GLGetProcAddress(x));
+        Window = Sdl.CreateWindow(Title, Sdl.WindowposCentered, Sdl.WindowposCentered, 800, 600, (uint)WindowFlags.Opengl);
+        Gl = GL.GetApi(x => (IntPtr)Sdl.GLGetProcAddress(x));
         
-        SDL.SetWindowResizable(Window, SdlBool.True);
-        SDL.SetWindowTitle(Window, _title);
+        Sdl.SetWindowResizable(Window, SdlBool.True);
+        Sdl.SetWindowTitle(Window, _title);
         
-        Context = SDL.GLCreateContext(Window);
-        if (SDL.GLMakeCurrent(Window, Context) != 0)
-            throw new(SDL.GetErrorS());
+        Context = Sdl.GLCreateContext(Window);
+        if (Sdl.GLMakeCurrent(Window, Context) != 0)
+            throw new(Sdl.GetErrorS());
         
         Renderer = new();
         App.Handler = this;
@@ -143,7 +140,7 @@ public unsafe class SDLWindow : IApplicationHandler {
         
         while (Open) {
             Event evt = new();
-            while (SDL.PollEvent(ref evt) != 0) {
+            while (Sdl.PollEvent(ref evt) != 0) {
                 switch ((EventType)evt.Type) {
                     case EventType.Windowevent:
                         switch ((WindowEventID)evt.Window.Event) {
@@ -151,7 +148,7 @@ public unsafe class SDLWindow : IApplicationHandler {
                                 Close();
                                 break;
                             case WindowEventID.Resized:
-                                GLA.Viewport(0, 0, (uint)evt.Window.Data1, (uint)evt.Window.Data2);
+                                Gl.Viewport(0, 0, (uint)evt.Window.Data1, (uint)evt.Window.Data2);
                                 App.Resize(evt.Window.Data1, evt.Window.Data2);
                                 break;
                         }
@@ -183,20 +180,20 @@ public unsafe class SDLWindow : IApplicationHandler {
                 }
             }
             
-            if (SDL.GLMakeCurrent(Window, Context) != 0)
-                throw new(SDL.GetErrorS());
+            if (Sdl.GLMakeCurrent(Window, Context) != 0)
+                throw new(Sdl.GetErrorS());
             
             App.Update();
             App.Render();
             
-            SDL.GLSwapWindow(Window);
+            Sdl.GLSwapWindow(Window);
             
-            SDL.PumpEvents();
-            SDL.Delay((uint)(1000 / RenderFrequency));
+            Sdl.PumpEvents();
+            Sdl.Delay((uint)(1000 / RenderFrequency));
         }
         
-        SDL.GLDeleteContext(Context);
-        SDL.DestroyWindow(Window);
-        SDL.QuitSubSystem(Sdl.InitVideo | Sdl.InitEvents);
+        Sdl.GLDeleteContext(Context);
+        Sdl.DestroyWindow(Window);
+        Sdl.QuitSubSystem(Sdl.InitVideo | Sdl.InitEvents);
     }
 }

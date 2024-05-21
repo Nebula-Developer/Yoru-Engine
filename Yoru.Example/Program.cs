@@ -9,7 +9,7 @@ using Yoru.Platforms.GL;
 namespace Yoru.Example;
 
 public class MyApp : Application {
-    public BoxElement box = new() {
+    public readonly BoxElement Box = new() {
         Color = SKColors.Orange,
         Transform = new() {
             Size = new(100),            // Set the size to 100x100
@@ -19,7 +19,7 @@ public class MyApp : Application {
         }
     };
     
-    public TextElement text = new() {
+    public readonly TextElement Text = new() {
         Text = "Try pressing the mouse or a key!",
         Color = SKColors.White,
         AutoResize = false, // Automaticaly resize the Transform's size to the text size
@@ -35,8 +35,8 @@ public class MyApp : Application {
     
     protected override void OnLoad() {
         base.OnLoad();
-        Element.AddChild(box);
-        Element.AddChild(text);
+        Element.AddChild(Box);
+        Element.AddChild(Text);
     }
     
     private float Lerp(float a, float b, float t) => a + (b - a) * t;
@@ -46,12 +46,12 @@ public class MyApp : Application {
         
         toggleMouse = !toggleMouse;
         float rotation = toggleMouse ? 45 : 0;
-        var currentRotation = box.Transform.LocalRotation;
+        var currentRotation = Box.Transform.LocalRotation;
         
         Animations.Add(new() {
             Duration = 0.5f,
             Easing = Easing.ExpOut,
-            OnUpdate = t => { box.Transform.LocalRotation = Lerp(currentRotation, rotation, (float)t); }
+            OnUpdate = t => { Box.Transform.LocalRotation = Lerp(currentRotation, rotation, (float)t); }
         }, "rotate");
     }
     
@@ -60,12 +60,12 @@ public class MyApp : Application {
         
         toggleKey = !toggleKey;
         float size = toggleKey ? 200 : 100;
-        var currentSize = box.Transform.Size.X;
+        var currentSize = Box.Transform.Size.X;
         
         Animations.Add(new() {
             Duration = 0.5f,
             Easing = Easing.ExpOut,
-            OnUpdate = t => { box.Transform.Size = new(Lerp(currentSize, size, (float)t)); }
+            OnUpdate = t => { Box.Transform.Size = new(Lerp(currentSize, size, (float)t)); }
         }, "size");
     }
     
@@ -79,7 +79,7 @@ public class MyApp : Application {
 
 public static class Program {
     public static void Main(string[] args) {
-        GLWindow myWindow = new();
+        GlWindow myWindow = new();
         myWindow.App = new MyApp();
         myWindow.Run();
         myWindow.Dispose();

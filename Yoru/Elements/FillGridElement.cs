@@ -1,4 +1,5 @@
 using Yoru.Graphics;
+// ReSharper disable CompareOfFloatsByEqualityOperator
 
 namespace Yoru.Elements;
 

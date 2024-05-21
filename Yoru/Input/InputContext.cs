@@ -12,7 +12,7 @@ public class InputContext(Application app) : AppContext(app) {
     private readonly Dictionary<Key, int> _releasedKeys = new();
     
     internal readonly List<Element> HoveredElements = new();
-    private readonly Dictionary<MouseButton, List<Element>> PressedElements = new();
+    private readonly Dictionary<MouseButton, List<Element>> _pressedElements = new();
     internal List<Element> InteractingElements = new();
     public int MaskIndex = 0;
     private HashSet<Key> _keys { get; } = new();
@@ -83,7 +83,7 @@ public class InputContext(Application app) : AppContext(app) {
         }
         
         for (var i = 0; i < removingElements.Count; i++) {
-            if (PressedElements.Any(x => x.Value.Contains(removingElements[i]))) {
+            if (_pressedElements.Any(x => x.Value.Contains(removingElements[i]))) {
                 interactingElements.Add(removingElements[i]);
             } else if (HoveredElements.Contains(removingElements[i])) {
                 HoveredElements.Remove(removingElements[i]);
@@ -125,14 +125,14 @@ public class InputContext(Application app) : AppContext(app) {
         _pressedButtons.TryGetValue(button, out var count);
         _pressedButtons[button] = count + 1;
         
-        if (!PressedElements.ContainsKey(button))
-            PressedElements[button] = new();
+        if (!_pressedElements.ContainsKey(button))
+            _pressedElements[button] = new();
         else
-            PressedElements[button].Clear();
+            _pressedElements[button].Clear();
         
         for (var i = InteractingElements.Count - 1; i >= 0; i--) {
             var x = InteractingElements.ElementAt(i);
-            PressedElements[button].Add(x);
+            _pressedElements[button].Add(x);
             x.MouseDown(button);
             if (!x.MaskMouseEvents) break;
         }
@@ -143,16 +143,16 @@ public class InputContext(Application app) : AppContext(app) {
         _releasedButtons.TryGetValue(button, out var count);
         _releasedButtons[button] = count + 1;
         
-        if (!PressedElements.ContainsKey(button))
+        if (!_pressedElements.ContainsKey(button))
             return;
         
-        for (var i = PressedElements[button].Count - 1; i >= 0; i--) {
-            var x = PressedElements[button][i];
+        for (var i = _pressedElements[button].Count - 1; i >= 0; i--) {
+            var x = _pressedElements[button][i];
             
             x.MouseUp(button);
         }
         
-        PressedElements[button].Clear();
+        _pressedElements[button].Clear();
     }
     
     public bool GetKey(Key key) => _keys.Contains(key);

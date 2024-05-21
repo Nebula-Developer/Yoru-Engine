@@ -7,11 +7,11 @@ using Yoru.Graphics;
 
 namespace Yoru.Platforms.GL;
 
-public class GLRenderer : Renderer {
-    internal GRContext _context;
-    internal GRGlInterface _glInterface;
-    internal GRBackendRenderTarget _renderTarget;
-    public IGLFWGraphicsContext GLContext { get; set; }
+public class GlRenderer : Renderer {
+    private GRContext _context;
+    private GRGlInterface _glInterface;
+    private GRBackendRenderTarget _renderTarget;
+    public IGLFWGraphicsContext GlContext { get; set; }
     
     public override void Load() {
         base.Load();
@@ -36,6 +36,6 @@ public class GLRenderer : Renderer {
     
     public override void Flush() {
         base.Flush();
-        GLContext.SwapBuffers();
+        GlContext.SwapBuffers();
     }
 }

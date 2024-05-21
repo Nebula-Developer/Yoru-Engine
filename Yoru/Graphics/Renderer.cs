@@ -5,6 +5,7 @@ using SkiaSharp;
 namespace Yoru.Graphics;
 
 public abstract class Renderer : IDisposable {
+    // ReSharper disable once InconsistentNaming
     protected SKSurface _surface;
     public SKCanvas Canvas {
         get => _surface.Canvas;
