@@ -22,10 +22,12 @@ public class Element : IDisposable {
     public bool HandleMouseEvents { get; set; } = true;
     public bool MouseInteraction { get; set; } = true;
     public bool ApplyTransformMatrix { get; set; } = true;
-
+    
     public bool IsMouseOver { get; private set; }
-    public Dictionary<MouseButton, bool> IsButtonDown { get; private set; } = new();
-    public bool IsMouseDown => IsButtonDown.Any(pair => pair.Value);
+    public Dictionary<MouseButton, bool> IsButtonDown { get; } = new();
+    public bool IsMouseDown {
+        get => IsButtonDown.Any(pair => pair.Value);
+    }
     
     public Transform Transform {
         get {
@@ -234,11 +236,11 @@ public class Element : IDisposable {
                     using (SKAutoCanvasRestore restoreWireframe = new(canvas)) {
                         // calculate a color based on App.Debugging.RenderDepth with modulo
                         var color = new SKColor(
-                            (byte) (App.Debugging.RenderDepth % 25 * 10),
-                            (byte) (App.Debugging.RenderDepth % 10 * 25),
-                            (byte) (255)
+                            (byte)(App.Debugging.RenderDepth % 25 * 10),
+                            (byte)(App.Debugging.RenderDepth % 10 * 25),
+                            255
                         );
-
+                        
                         canvas.DrawPoints(SKPointMode.Polygon, Path.Points, new() {
                             Color = color,
                             Style = SKPaintStyle.Stroke,
@@ -271,11 +273,23 @@ public class Element : IDisposable {
     }
     
     public void Load() => InvokeVirtualPair(OnLoad, DoLoad);
-    public void MouseDown(MouseButton button) => InvokeVirtualPair(() => { IsButtonDown[button] = true; OnMouseDown(button); }, () => DoMouseDown?.Invoke(button));
-    public void MouseUp(MouseButton button) => InvokeVirtualPair(() => { IsButtonDown[button] = false; OnMouseUp(button); }, () => DoMouseUp?.Invoke(button));
+    public void MouseDown(MouseButton button) => InvokeVirtualPair(() => {
+        IsButtonDown[button] = true;
+        OnMouseDown(button);
+    }, () => DoMouseDown?.Invoke(button));
+    public void MouseUp(MouseButton button) => InvokeVirtualPair(() => {
+        IsButtonDown[button] = false;
+        OnMouseUp(button);
+    }, () => DoMouseUp?.Invoke(button));
     public void MouseMove(Vector2 position) => InvokeVirtualPair(() => OnMouseMove(position), () => DoMouseMove?.Invoke(position));
-    public void MouseEnter() => InvokeVirtualPair(() => { IsMouseOver = true; OnMouseEnter(); }, DoMouseEnter);
-    public void MouseLeave() => InvokeVirtualPair(() => { IsMouseOver = false; OnMouseLeave(); }, DoMouseLeave);
+    public void MouseEnter() => InvokeVirtualPair(() => {
+        IsMouseOver = true;
+        OnMouseEnter();
+    }, DoMouseEnter);
+    public void MouseLeave() => InvokeVirtualPair(() => {
+        IsMouseOver = false;
+        OnMouseLeave();
+    }, DoMouseLeave);
     public void ChildAdded(Element child) => InvokeVirtualPair(() => OnChildAdded(child), DoChildAdded);
     public void ChildRemoved(Element child) => InvokeVirtualPair(() => OnChildRemoved(child), DoChildRemoved);
     public void TransformChanged() => InvokeVirtualPair(OnTransformChanged, DoTransformChanged);

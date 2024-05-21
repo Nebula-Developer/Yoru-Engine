@@ -38,7 +38,7 @@ public class Application {
     public TimeContext RenderTime { get; protected set; }
     
     public InputContext Input { get; protected set; }
-
+    
     public AnimationContext Animations { get; protected set; }
     public DebugContext Debugging { get; protected set; }
     

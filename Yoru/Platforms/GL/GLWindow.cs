@@ -1,9 +1,11 @@
 #nullable disable
 
 using System.Numerics;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using Yoru.Input;
+using OGL = OpenTK.Graphics.OpenGL4.GL;
 
 namespace Yoru.Platforms.GL;
 
@@ -11,7 +13,7 @@ public class GLWindow : GameWindow, IApplicationHandler {
     private Vector2 _dpi = Vector2.One;
     public Application App;
     public GLRenderer Renderer;
-    public GLWindow() : base(new GameWindowSettings() { UpdateFrequency = 300 }, new NativeWindowSettings() { Title = "Yoru App", Flags = ContextFlags.ForwardCompatible }) { }
+    public GLWindow() : base(new() { UpdateFrequency = 300 }, new() { Title = "Yoru App", Flags = ContextFlags.ForwardCompatible }) { }
     public GLWindow(GameWindowSettings gws, NativeWindowSettings nws) : base(gws, nws) { }
     
     public new double RenderFrequency { get => base.UpdateFrequency; set => base.UpdateFrequency = value; }
@@ -19,9 +21,9 @@ public class GLWindow : GameWindow, IApplicationHandler {
     
     public new string Title { get => base.Title; set => base.Title = value; } // Only for bridging
     public new Vector2 Size { get => new(FramebufferSize.X, FramebufferSize.Y); }
-
+    
     public Vector2 GetDPI() {
-        bool val = TryGetCurrentMonitorScale(out float horizontal, out float vertical);
+        var val = TryGetCurrentMonitorScale(out var horizontal, out var vertical);
         if (!val) return _dpi = Vector2.One;
         _dpi = new(horizontal, vertical);
         return _dpi;
@@ -30,6 +32,14 @@ public class GLWindow : GameWindow, IApplicationHandler {
     protected override void OnLoad() {
         base.OnLoad();
         Renderer = new();
+        
+        OGL.Enable(EnableCap.FramebufferSrgb);
+        OGL.Enable(EnableCap.Multisample);
+        OGL.Enable(EnableCap.DepthTest);
+        OGL.Enable(EnableCap.Blend);
+        OGL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        OGL.DepthFunc(DepthFunction.Less);
+        OGL.ClearColor(0, 0, 0, 1);
         
         App.Handler = this;
         App.Renderer = Renderer;

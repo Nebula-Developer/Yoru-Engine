@@ -2,7 +2,7 @@ using SkiaSharp;
 
 namespace Yoru.Elements;
 
-public class RoundBoxElement : ColorableElement {
+public class RoundBoxElement : PaintedElement {
     public float BorderRadius = 0f;
     
     protected override void OnRender(SKCanvas canvas)

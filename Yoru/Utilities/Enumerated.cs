@@ -1,4 +1,4 @@
-namespace Yoru.Mathematics;
+namespace Yoru.Utilities;
 
 public static class Enumerated {
     // Iterate an enum. Eg, if the val is A in { A, B, C }, iterate to B, or wrap to first [C->A].

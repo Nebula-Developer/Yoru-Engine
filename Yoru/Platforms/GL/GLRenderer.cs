@@ -30,8 +30,8 @@ public class GLRenderer : Renderer {
         base.Resize(width, height);
         _surface?.Dispose();
         _renderTarget?.Dispose();
-        _renderTarget = new(width, height, 0, 8, new(0, (uint)SizedInternalFormat.Rgba8));
-        _surface = SKSurface.Create(_context, _renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
+        _renderTarget = new(width, height, 0, 8, new(0, (uint)SizedInternalFormat.Rgba16f));
+        _surface = SKSurface.Create(_context, _renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.RgbaF16);
     }
     
     public override void Flush() {

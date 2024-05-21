@@ -3,7 +3,7 @@ using SkiaSharp;
 
 namespace Yoru.Elements;
 
-public class PathElement : ColorableElement {
+public class PathElement : PaintedElement {
     private SKPath _drawPath = new();
     public bool AutoResize = true;
     

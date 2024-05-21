@@ -2,7 +2,7 @@ using SkiaSharp;
 
 namespace Yoru.Elements;
 
-public class CircleElement : ColorableElement {
+public class CircleElement : PaintedElement {
     public float Radius {
         get => Transform.Size.X;
         set => Transform.Size = new(value);

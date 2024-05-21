@@ -1,0 +1,13 @@
+//kind=shader
+uniform vec2 res;
+uniform float power;
+uniform float extend;
+uniform vec3 color;
+
+half4 main(vec2 fragCoord) {
+	vec2 uv = fragCoord.xy / res.xy;
+    uv *=  1.0 - uv.yx;
+    float vig = uv.x * uv.y * power;
+    vig = 1.0 - pow(vig, extend);
+    return vec4(color, vig);
+}

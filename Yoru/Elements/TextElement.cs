@@ -8,7 +8,7 @@ public enum TextAlignment {
     Right
 }
 
-public class TextElement : ColorableElement {
+public class TextElement : PaintedElement {
     private string _text = "";
     
     public TextAlignment Alignment = TextAlignment.Left;

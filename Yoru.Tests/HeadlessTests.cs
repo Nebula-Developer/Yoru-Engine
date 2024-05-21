@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using SkiaSharp;
 using Xunit.Abstractions;
 using Yoru.Elements;
@@ -27,6 +28,7 @@ public class HeadlessTests(ITestOutputHelper output) {
         
         app.Element.AddChild(box);
         
+        Stopwatch scaleWatch = new();
         app.CanvasScale = new(2);
         app.Load();
         app.CanvasScale = new(4);
@@ -35,7 +37,9 @@ public class HeadlessTests(ITestOutputHelper output) {
         app.Render();
         app.CanvasScale = new(8);
         
-        Assert.Equal(1920 / 8, app.Element.Transform.Size.X);
+        output.WriteLine($"Canvas scale time: {scaleWatch.ElapsedMilliseconds}ms");
+        
+        Assert.Equal(1920 / 8, (int)app.Element.Transform.Size.X);
         Assert.Equal(1920, app.FramebufferSize.X);
     }
 }
