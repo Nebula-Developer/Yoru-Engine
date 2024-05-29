@@ -31,7 +31,7 @@ public class MyApp : Application {
         }
     };
     
-    private bool toggleMouse, toggleKey;
+    private bool _toggleMouse, _toggleKey;
     
     protected override void OnLoad() {
         base.OnLoad();
@@ -44,8 +44,8 @@ public class MyApp : Application {
     protected override void OnMouseDown(MouseButton button) {
         base.OnMouseDown(button);
         
-        toggleMouse = !toggleMouse;
-        float rotation = toggleMouse ? 45 : 0;
+        _toggleMouse = !_toggleMouse;
+        float rotation = _toggleMouse ? 45 : 0;
         var currentRotation = Box.Transform.LocalRotation;
         
         Animations.Add(new() {
@@ -58,8 +58,8 @@ public class MyApp : Application {
     protected override void OnKeyDown(Key key) {
         base.OnKeyDown(key);
         
-        toggleKey = !toggleKey;
-        float size = toggleKey ? 200 : 100;
+        _toggleKey = !_toggleKey;
+        float size = _toggleKey ? 200 : 100;
         var currentSize = Box.Transform.Size.X;
         
         Animations.Add(new() {
@@ -82,6 +82,5 @@ public static class Program {
         GlWindow myWindow = new();
         myWindow.App = new MyApp();
         myWindow.Run();
-        myWindow.Dispose();
     }
 }

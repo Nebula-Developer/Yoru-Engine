@@ -7,12 +7,12 @@ namespace Yoru.Input;
 
 public class InputContext(Application app) : AppContext(app) {
     private readonly Dictionary<MouseButton, int> _pressedButtons = new();
+    private readonly Dictionary<MouseButton, List<Element>> _pressedElements = new();
     private readonly Dictionary<Key, int> _pressedKeys = new();
     private readonly Dictionary<MouseButton, int> _releasedButtons = new();
     private readonly Dictionary<Key, int> _releasedKeys = new();
     
     internal readonly List<Element> HoveredElements = new();
-    private readonly Dictionary<MouseButton, List<Element>> _pressedElements = new();
     internal List<Element> InteractingElements = new();
     public int MaskIndex = 0;
     private HashSet<Key> _keys { get; } = new();

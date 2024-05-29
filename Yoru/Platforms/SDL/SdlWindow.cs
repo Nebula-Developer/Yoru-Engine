@@ -46,72 +46,6 @@ public unsafe class SdlWindow : IApplicationHandler {
         set => Sdl.SetWindowSize(Window, (int)value.X, (int)value.Y);
     }
     
-    public MouseButton GetMouseButton(byte button) {
-        return button switch {
-            1 => MouseButton.Left,
-            2 => MouseButton.Middle,
-            3 => MouseButton.Right,
-            4 => MouseButton.Button4,
-            5 => MouseButton.Button5,
-            6 => MouseButton.Button6,
-            7 => MouseButton.Button7,
-            8 => MouseButton.Button8,
-            _ => MouseButton.Left
-        };
-    }
-    
-    public Key GetKey(int key) {
-        var enumSub = Enum.GetName(typeof(KeyCode), key)?[1..];
-        if (Enum.TryParse("D" + enumSub, out Key dRes))
-            return dRes;
-        
-        if (Enum.TryParse(enumSub, out Key kRes))
-            return kRes;
-        
-        return (KeyCode)key switch {
-            KeyCode.KReturn => Key.Enter,
-            KeyCode.KBackquote => Key.GraveAccent,
-            KeyCode.KLshift => Key.LeftShift,
-            KeyCode.KRshift => Key.RightShift,
-            KeyCode.KLctrl => Key.LeftControl,
-            KeyCode.KRctrl => Key.RightControl,
-            KeyCode.KLalt => Key.LeftAlt,
-            KeyCode.KRalt => Key.RightAlt,
-            KeyCode.KQuote => Key.Apostrophe,
-            KeyCode.KLeftbracket => Key.LeftBracket,
-            KeyCode.KRightbracket => Key.RightBracket,
-            KeyCode.KEquals => Key.Equal,
-            KeyCode.KCapslock => Key.CapsLock,
-            KeyCode.KLgui => Key.LeftSuper,
-            KeyCode.KRgui => Key.RightSuper,
-            KeyCode.KPrintscreen => Key.PrintScreen,
-            KeyCode.KScrolllock => Key.ScrollLock,
-            KeyCode.KPageup => Key.PageUp,
-            KeyCode.KPagedown => Key.PageDown,
-            KeyCode.KNumlockclear => Key.NumLock,
-            KeyCode.KApplication => Key.Menu,
-            
-            KeyCode.KKPDivide => Key.KeyPadDivide,
-            KeyCode.KKPMultiply => Key.KeyPadMultiply,
-            KeyCode.KKPMinus => Key.KeyPadSubtract,
-            KeyCode.KKPPlus => Key.KeyPadAdd,
-            KeyCode.KKPEnter => Key.KeyPadEnter,
-            KeyCode.KKP1 => Key.KeyPad1,
-            KeyCode.KKP2 => Key.KeyPad2,
-            KeyCode.KKP3 => Key.KeyPad3,
-            KeyCode.KKP4 => Key.KeyPad4,
-            KeyCode.KKP5 => Key.KeyPad5,
-            KeyCode.KKP6 => Key.KeyPad6,
-            KeyCode.KKP7 => Key.KeyPad7,
-            KeyCode.KKP8 => Key.KeyPad8,
-            KeyCode.KKP9 => Key.KeyPad9,
-            KeyCode.KKP0 => Key.KeyPad0,
-            KeyCode.KKPPeriod => Key.KeyPadDecimal,
-            
-            _ => Key.Unknown
-        };
-    }
-    
     public void Run() {
         if (Sdl.Init(Sdl.InitVideo | Sdl.InitEvents) != 0)
             throw new(Sdl.GetErrorS());
@@ -195,5 +129,71 @@ public unsafe class SdlWindow : IApplicationHandler {
         Sdl.GLDeleteContext(Context);
         Sdl.DestroyWindow(Window);
         Sdl.QuitSubSystem(Sdl.InitVideo | Sdl.InitEvents);
+    }
+    
+    public MouseButton GetMouseButton(byte button) {
+        return button switch {
+            1 => MouseButton.Left,
+            2 => MouseButton.Middle,
+            3 => MouseButton.Right,
+            4 => MouseButton.Button4,
+            5 => MouseButton.Button5,
+            6 => MouseButton.Button6,
+            7 => MouseButton.Button7,
+            8 => MouseButton.Button8,
+            _ => MouseButton.Left
+        };
+    }
+    
+    public Key GetKey(int key) {
+        var enumSub = Enum.GetName(typeof(KeyCode), key)?[1..];
+        if (Enum.TryParse("D" + enumSub, out Key dRes))
+            return dRes;
+        
+        if (Enum.TryParse(enumSub, out Key kRes))
+            return kRes;
+        
+        return (KeyCode)key switch {
+            KeyCode.KReturn => Key.Enter,
+            KeyCode.KBackquote => Key.GraveAccent,
+            KeyCode.KLshift => Key.LeftShift,
+            KeyCode.KRshift => Key.RightShift,
+            KeyCode.KLctrl => Key.LeftControl,
+            KeyCode.KRctrl => Key.RightControl,
+            KeyCode.KLalt => Key.LeftAlt,
+            KeyCode.KRalt => Key.RightAlt,
+            KeyCode.KQuote => Key.Apostrophe,
+            KeyCode.KLeftbracket => Key.LeftBracket,
+            KeyCode.KRightbracket => Key.RightBracket,
+            KeyCode.KEquals => Key.Equal,
+            KeyCode.KCapslock => Key.CapsLock,
+            KeyCode.KLgui => Key.LeftSuper,
+            KeyCode.KRgui => Key.RightSuper,
+            KeyCode.KPrintscreen => Key.PrintScreen,
+            KeyCode.KScrolllock => Key.ScrollLock,
+            KeyCode.KPageup => Key.PageUp,
+            KeyCode.KPagedown => Key.PageDown,
+            KeyCode.KNumlockclear => Key.NumLock,
+            KeyCode.KApplication => Key.Menu,
+            
+            KeyCode.KKPDivide => Key.KeyPadDivide,
+            KeyCode.KKPMultiply => Key.KeyPadMultiply,
+            KeyCode.KKPMinus => Key.KeyPadSubtract,
+            KeyCode.KKPPlus => Key.KeyPadAdd,
+            KeyCode.KKPEnter => Key.KeyPadEnter,
+            KeyCode.KKP1 => Key.KeyPad1,
+            KeyCode.KKP2 => Key.KeyPad2,
+            KeyCode.KKP3 => Key.KeyPad3,
+            KeyCode.KKP4 => Key.KeyPad4,
+            KeyCode.KKP5 => Key.KeyPad5,
+            KeyCode.KKP6 => Key.KeyPad6,
+            KeyCode.KKP7 => Key.KeyPad7,
+            KeyCode.KKP8 => Key.KeyPad8,
+            KeyCode.KKP9 => Key.KeyPad9,
+            KeyCode.KKP0 => Key.KeyPad0,
+            KeyCode.KKPPeriod => Key.KeyPadDecimal,
+            
+            _ => Key.Unknown
+        };
     }
 }

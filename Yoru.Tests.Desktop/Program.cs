@@ -71,6 +71,8 @@ public class MyApp : Application {
         ZIndex = 6
     };
     
+    private readonly List<double> _fps = new();
+    
     private readonly TextElement _fpsText = new() {
         Transform = new() {
             OffsetPosition = new(1, 0),
@@ -82,18 +84,6 @@ public class MyApp : Application {
         ZIndex = 1000,
         Color = SKColors.Black
     };
-    
-    private readonly BoxElement _wrapper = new() {
-        Transform = new() {
-            ParentScale = new(1f)
-        },
-        Color = new(10, 30, 50),
-        MaskMouseEvents = true
-    };
-    
-    private SKRuntimeEffect? _effect;
-    
-    private readonly List<double> _fps = new();
     
     private readonly SnowflakeOverlay _overlay = new() {
         Transform = new() {
@@ -110,6 +100,16 @@ public class MyApp : Application {
         Color = SKColors.White,
         TextSize = 30
     };
+    
+    private readonly BoxElement _wrapper = new() {
+        Transform = new() {
+            ParentScale = new(1f)
+        },
+        Color = new(10, 30, 50),
+        MaskMouseEvents = true
+    };
+    
+    private SKRuntimeEffect? _effect;
     private SKShader? _shader;
     
     protected override void OnLoad() {
