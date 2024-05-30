@@ -1,21 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Title>Yoru</Title>
         <RootNamespace>Yoru</RootNamespace>
         <PackageId>Yoru</PackageId>
-        <Authors>NebulaDev</Authors>
-        <Description>Flexible 2D game/application framework for crossplatform development</Description>
-        <PackageTags>graphics, audio, software, game, framework, crossplatform</PackageTags>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageProjectUrl>https://github.com/nebula-developer/yoru-engine</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/nebula-developer/yoru-engine</RepositoryUrl>
-        <Version>1.0.0-alpha.2</Version>
-        <PackageReleaseNotes>Third alpha release for Yoru Engine v1.0</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
@@ -27,8 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\README.md" Pack="true" PackagePath=""/>
-        <None Include="..\LICENSE" Pack="true" PackagePath=""/>
         <EmbeddedResource Include="..\Yoru.Resources\**\*">
             <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
         </EmbeddedResource>

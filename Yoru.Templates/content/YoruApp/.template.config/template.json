@@ -11,8 +11,7 @@
     "sourceName": "YoruApp",
     "identity": "YoruApp",
     "preferNameDirectory": false,
-    "preferDefaultName": true,
-    "defaultName": "MyYoruApp",
+    "preferDefaultName": false,
     "tags": {
         "language": "C#",
         "type": "project"
