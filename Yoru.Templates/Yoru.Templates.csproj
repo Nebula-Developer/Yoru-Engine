@@ -1,23 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>Yoru.Templates</PackageId>
-    <PackageVersion>1.0.0-alpha.2</PackageVersion>
     <Title>Yoru Templates</Title>
-    <Authors>NebulaDev</Authors>
     <Description>Templates for creating crossplatform Yoru applications</Description>
-    <PackageTags>graphics, audio, software, game, framework, crossplatform</PackageTags>
-    <PackageProjectUrl>https://github.com/nebula-developer/yoru-engine</PackageProjectUrl>
+    <PackageId>Yoru.Templates</PackageId>
 
     <PackageType>Template</PackageType>
-    <TargetFramework>net8.0</TargetFramework>
     <IncludeContentInPack>true</IncludeContentInPack>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <ContentTargetFolders>content</ContentTargetFolders>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
     <NoDefaultExcludes>true</NoDefaultExcludes>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -26,15 +19,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.TemplateEngine.Tasks" Version="*" PrivateAssets="all" IsImplicitlyDefined="true"/>
+    <PackageReference Include="Yoru" Version="$(Version)"/>
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="content\**\*" Exclude="content\**\bin\**;content\**\obj\**" />
     <Compile Remove="**\*" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,28 @@
+<!-- Global csproj configurations for all projects uploaded to NuGet -->
+
+<Project>
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <Authors>NebulaDev</Authors>
+        <Description>Flexible 2D game/application framework for crossplatform development</Description>
+        <PackageTags>graphics, audio, software, game, framework, crossplatform</PackageTags>
+
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+
+        <PackageProjectUrl>https://github.com/nebula-developer/yoru-engine</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/nebula-developer/yoru-engine</RepositoryUrl>
+
+        <Version>1.0.0-beta.1</Version>
+        <PackageReleaseNotes>First beta release for Yoru Engine</PackageReleaseNotes>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)/README.md" Pack="true" PackagePath=""/>
+        <None Include="$(MSBuildThisFileDirectory)/LICENSE" Pack="true" PackagePath=""/>
+    </ItemGroup>
+</Project>

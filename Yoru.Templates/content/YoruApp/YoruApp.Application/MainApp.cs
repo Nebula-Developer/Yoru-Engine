@@ -2,7 +2,7 @@
 
 namespace YoruApp;
 
-public class YoruAppApplication : Application {
+public class MainApp : Application {
     protected override void OnLoad() {
         base.OnLoad();
         // Your loading logic goes here

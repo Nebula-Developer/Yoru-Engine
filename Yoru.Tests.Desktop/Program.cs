@@ -134,7 +134,7 @@ public class MyApp : Application {
         };
         
         _effect = SKRuntimeEffect.Create(
-            Resources.LoadResourceFileS("shaders/vignette.sksl"),
+            Resources.LoadYoruResourceFileS("shaders/vignette.sksl"),
             out var errors
         );
         
