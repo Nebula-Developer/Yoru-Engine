@@ -62,7 +62,7 @@ public class Animation {
         
         if (Direction == AnimationDirection.Backward && LoopMode == AnimationLoopMode.PingPong)
             // Invert the easing method
-            OnUpdate?.Invoke(1 - Easing?.Invoke(1 - prog) ?? prog);
+            OnUpdate?.Invoke(1 - (Easing?.Invoke(1 - prog) ?? 1 - prog));
         else
             OnUpdate?.Invoke(Easing?.Invoke(prog) ?? prog);
     }
