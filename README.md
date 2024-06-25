@@ -18,7 +18,7 @@ Yoru provides an abstract `Renderer` class, that allows a single SkiaSharp canva
 
 ### Platforms
 
-Yoru was designed with the goal of allowing a single C# project to run smoothly across common operating systems, without requiring platform-specific code. Yoru utilises both [OpenTK](https://opentk.net/) and [.NET Maui](https://dotnet.microsoft.com/en-us/apps/maui) to provide native support for Window, macOS, Linux, iOS and Android, and bridges platform-specific commands to a global interface for straightforward development.
+Yoru was designed with the goal of allowing a single C# project to run smoothly across common operating systems, without requiring platform-specific code. Yoru utilises both [OpenTK](https://opentk.net/) and [.NET Maui](https://dotnet.microsoft.com/en-us/apps/maui) to provide native support for Windows, macOS, Linux, iOS and Android, and bridges platform-specific commands to a global interface for straightforward development.
 
 The following platforms are (planned to be) supported by Yoru:
 
