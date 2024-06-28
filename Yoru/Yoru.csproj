@@ -7,17 +7,32 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="OpenTK" Version="4.8.2" PrivateAssets="compile"/>
-        <PackageReference Include="Silk.Net" Version="2.21.0" PrivateAssets="compile"/>
-        <PackageReference Include="SkiaSharp" Version="2.88.8"/>
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.8" Condition="$([MSBuild]::IsOSPlatform('Linux'))"/>
-        <PackageReference Include="Topten.RichTextKit" Version="0.4.166"/>
+        <PackageReference Include="ManagedBass" Version="3.1.1" PrivateAssets="compile" />
+        <PackageReference Include="ManagedBass.Fx" Version="3.1.1" PrivateAssets="compile" />
+        <PackageReference Include="ManagedBass.Mix" Version="3.1.1" PrivateAssets="compile" />
+        <PackageReference Include="OpenTK" Version="4.8.2" PrivateAssets="compile" />
+        <PackageReference Include="Silk.Net" Version="2.21.0" PrivateAssets="compile" />
+        <PackageReference Include="SkiaSharp" Version="2.88.8" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.8" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+        <PackageReference Include="Topten.RichTextKit" Version="0.4.166" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="..\Yoru.Resources\**\*">
+        <Content Include="..\Yoru.Resources\**\*" Exclude="..\Yoru.Resources\lib\**\*">
             <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-        </EmbeddedResource>
+        </Content>
+
+        <Content Include="..\Yoru.Resources\lib\windows\**\*" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+
+        <Content Include="..\Yoru.Resources\lib\macos\**\*" Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+
+        <Content Include="..\Yoru.Resources\lib\linux\**\*" Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
 </Project>
