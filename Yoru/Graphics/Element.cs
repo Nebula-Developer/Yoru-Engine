@@ -211,7 +211,7 @@ public class Element : IDisposable {
     }
     
     protected virtual bool ShouldRender(SKCanvas canvas, bool matrixApplied = true)
-        => matrixApplied ? !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y)) : !canvas.QuickReject(Path);
+        => matrixApplied ? !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y)) : !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
     
     public void Update() {
         OnUpdate();
@@ -225,34 +225,34 @@ public class Element : IDisposable {
         
         using SKAutoCanvasRestore restore = new(canvas);
         
-        if (!Cull || ShouldRender(canvas)) {
-            switch (App.DrawingMethod) {
-                case ElementDrawingMethod.Render:
-                    if (ApplyTransformMatrix) Transform.ApplyToCanvas(canvas);
+        switch (App.DrawingMethod) {
+            case ElementDrawingMethod.Render:
+                if (ApplyTransformMatrix) Transform.ApplyToCanvas(canvas);
+                if (!Cull || ShouldRender(canvas)) {
                     OnRender(canvas);
                     DoRender?.Invoke(canvas);
-                    break;
-                case ElementDrawingMethod.PathOutline:
-                    using (SKAutoCanvasRestore _ = new(canvas)) {
-                        // calculate a color based on App.Debugging.RenderDepth with modulo
-                        var color = new SKColor(
-                            (byte)(App.Debugging.RenderDepth % 25 * 10),
-                            (byte)(App.Debugging.RenderDepth % 10 * 25),
-                            255
-                        );
-                        
-                        canvas.DrawPoints(SKPointMode.Polygon, Path.Points, new() {
-                            Color = color,
-                            Style = SKPaintStyle.Stroke,
-                            StrokeWidth = 2
-                        });
-                    }
+                    OnRenderChildren(canvas);
+                }
+                break;
+            case ElementDrawingMethod.PathOutline:
+                using (SKAutoCanvasRestore _ = new(canvas)) {
+                    var color = new SKColor(
+                        (byte)(App.Debugging.RenderDepth % 25 * 10),
+                        (byte)(App.Debugging.RenderDepth % 10 * 25),
+                        255
+                    );
                     
-                    break;
-            }
+                    canvas.DrawPoints(SKPointMode.Polygon, Path.Points, new() {
+                        Color = color,
+                        Style = SKPaintStyle.Stroke,
+                        StrokeWidth = 2
+                    });
+
+                    OnRenderChildren(canvas);
+                }
+                
+                break;
         }
-        
-        OnRenderChildren(canvas);
     }
     
     public void Resize(int width, int height) {

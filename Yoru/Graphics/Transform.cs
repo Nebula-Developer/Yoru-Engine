@@ -57,9 +57,29 @@ public class Transform {
     }
     
     public void UpdateMatrix() {
-        Matrix = SKMatrix.CreateIdentity();
-        Matrix = Matrix.PostConcat(SKMatrix.CreateRotationDegrees(WorldRotation, Size.X * RotationOffset.X, Size.Y * RotationOffset.Y));
-        Matrix = Matrix.PostConcat(SKMatrix.CreateTranslation(WorldPosition.X, WorldPosition.Y));
+        SKMatrix matrix;
+
+        if (Element?.Parent == null)
+            matrix = SKMatrix.CreateIdentity();
+        else
+            matrix = Element.Parent.Transform.Matrix;
+
+        Vector2 position = LocalPosition - (OffsetPosition * Size) + (Element?.Parent?.Transform.Size ?? new Vector2(0, 0)) * AnchorPosition;
+
+        SKPoint mappedPosition = matrix.MapPoint(position.X, position.Y);
+        // canvas.DrawPoint(mappedPosition, new SKPaint { Color = GetHashCodeColor(), StrokeWidth = 10 });
+
+        matrix = SKMatrix.CreateIdentity();
+        matrix = matrix.PostConcat(SKMatrix.CreateTranslation(mappedPosition.X, mappedPosition.Y));
+
+        SKPoint point2 = matrix.MapPoint(new SKPoint(0, 0));
+        matrix = matrix.PostConcat(SKMatrix.CreateRotationDegrees(Element?.Parent?.Transform.WorldRotation ?? 0, point2.X, point2.Y));
+
+        SKPoint point = new SKPoint(RotationOffset.X * Size.X, RotationOffset.Y * Size.Y);
+        point = matrix.MapPoint(point);
+        matrix = matrix.PostConcat(SKMatrix.CreateRotationDegrees(LocalRotation, point.X, point.Y));
+        
+        Matrix = matrix;
     }
     
     #region Size
