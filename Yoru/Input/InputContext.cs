@@ -26,7 +26,9 @@ public class InputContext(Application app) : AppContext(app) {
     }
     public Vector2 MousePosition { get; private set; }
     
-    public void Update() { }
+    public void Update() {
+        HandleMouseInteractions();
+    }
     
     public void UpdateCollections() {
         UpdateCollection(_pressedKeys);
@@ -61,53 +63,48 @@ public class InputContext(Application app) : AppContext(app) {
         _releasedKeys[key] = count + 1;
     }
     
-    public void HandleMouseInteractions(ref Queue<Element> queue, ref List<Element> interactingElements, int position = 0) {
-        var elements = queue.Dequeue().Children;
-        List<Element> removingElements = new();
-        
-        for (var i = 0; i < elements.Count; i++) {
-            var element = elements[i];
-            
-            if (!element.MouseInteraction) continue;
-            queue.Enqueue(element);
-            if (!element.HandleMouseEvents) continue;
-            
-            if (element.PointIntersects(MousePosition)) {
-                if (!element.MaskMouseEvents) {
-                    removingElements.AddRange(interactingElements);
-                    interactingElements.Clear();
-                }
-                
-                interactingElements.Add(element);
-            } else if (HoveredElements.Contains(element)) removingElements.Add(element);
-        }
-        
-        for (var i = 0; i < removingElements.Count; i++) {
-            if (_pressedElements.Any(x => x.Value.Contains(removingElements[i]))) {
-                interactingElements.Add(removingElements[i]);
-            } else if (HoveredElements.Contains(removingElements[i])) {
-                HoveredElements.Remove(removingElements[i]);
-                removingElements[i].MouseLeave();
+    public void GetPositionalElements(ref Queue<Element> queue, ref List<Element> interactingElements) {
+        if (queue.Count == 0) return;
+
+        var elm = queue.Dequeue();
+
+        for (var i = 0; i < elm.Children.Count; i++) {
+            if (elm.Children[i].PointIntersects(MousePosition)) {
+                queue.Enqueue(elm.Children[i]);
+                interactingElements.Add(elm.Children[i]);
             }
         }
-        
-        if (queue.Count > 0) HandleMouseInteractions(ref queue, ref interactingElements, position);
+
+        GetPositionalElements(ref queue, ref interactingElements);
     }
     
     public void HandleMouseInteractions(Element elm = null) {
-        elm = elm ?? App.Element;
+        elm ??= App.Element;
         Queue<Element> interactQueue = new();
         interactQueue.Enqueue(elm);
         List<Element> completed = new();
-        HandleMouseInteractions(ref interactQueue, ref completed);
-        
+        GetPositionalElements(ref interactQueue, ref completed);
+
+        completed.Reverse();
+
         for (var i = 0; i < completed.Count; i++) {
             if (!HoveredElements.Contains(completed[i])) {
-                HoveredElements.Add(completed[i]);
                 completed[i].MouseEnter();
+                HoveredElements.Add(completed[i]);
+                if (!completed[i].MaskMouseEvents) {
+                    completed.RemoveRange(i + 1, completed.Count - i - 1);
+                    break;
+                }
             }
         }
-        
+
+        for (var i = 0; i < HoveredElements.Count; i++) {
+            if (!completed.Contains(HoveredElements[i])) {
+                HoveredElements[i].MouseLeave();
+                HoveredElements.RemoveAt(i);
+            }
+        }
+
         InteractingElements = completed;
     }
     

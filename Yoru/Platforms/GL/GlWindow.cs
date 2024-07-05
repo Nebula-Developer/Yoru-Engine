@@ -35,6 +35,12 @@ public class GlWindow : IApplicationHandler {
     public Vector2 Size {
         get => Bridge.Size;
     }
+
+    public bool VSync {
+        get => Bridge.VSync;
+        set => Bridge.VSync = value;
+    }
+    
     public void Close() => Bridge.Close();
     public void Run() => Bridge.Run();
 }

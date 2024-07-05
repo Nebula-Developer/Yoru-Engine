@@ -45,6 +45,16 @@ public unsafe class SdlWindow : IApplicationHandler {
         }
         set => Sdl.SetWindowSize(Window, (int)value.X, (int)value.Y);
     }
+
+    public bool VSync {
+        get => _vsync;
+        set {
+            _vsync = value;
+            Sdl.GLSetSwapInterval(value ? 1 : 0);
+        }
+    }
+    
+    private bool _vsync = true;
     
     public void Run() {
         if (Sdl.Init(Sdl.InitVideo | Sdl.InitEvents) != 0)
@@ -71,6 +81,7 @@ public unsafe class SdlWindow : IApplicationHandler {
         App.Load();
         
         App.Resize(800, 600);
+        VSync = _vsync;
         
         while (Open) {
             Event evt = new();

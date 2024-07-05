@@ -10,4 +10,5 @@ public class HeadlessHandler : IApplicationHandler {
     
     public double RenderFrequency { get; set; } = 0;
     public double UpdateFrequency { get; set; } = 0;
+    public bool VSync { get; set; } = false;
 }

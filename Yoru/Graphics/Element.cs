@@ -245,7 +245,11 @@ public class Element : IDisposable {
                     canvas.DrawPoints(SKPointMode.Polygon, Path.Points, new() {
                         Color = color,
                         Style = SKPaintStyle.Stroke,
-                        StrokeWidth = 2
+                        StrokeWidth = 1,
+                        FilterQuality = SKFilterQuality.High,
+                        IsAntialias = true,
+                        IsDither = true,
+                        IsStroke = true
                     });
 
                     OnRenderChildren(canvas);

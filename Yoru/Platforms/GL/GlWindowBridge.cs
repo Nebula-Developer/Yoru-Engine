@@ -21,6 +21,11 @@ internal class GlWindowBridge(GameWindowSettings gws, NativeWindowSettings nws) 
     
     public new string Title { get => base.Title; set => base.Title = value; } // Only for bridging
     public new Vector2 Size { get => new(FramebufferSize.X, FramebufferSize.Y); }
+
+    public new bool VSync {
+        get => base.VSync == VSyncMode.On;
+        set => base.VSync = value ? VSyncMode.On : VSyncMode.Off;
+    }
     
     internal Vector2 GetDpi() {
         var val = TryGetCurrentMonitorScale(out var horizontal, out var vertical);
