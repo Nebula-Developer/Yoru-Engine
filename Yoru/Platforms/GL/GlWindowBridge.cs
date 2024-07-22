@@ -21,7 +21,7 @@ internal class GlWindowBridge(GameWindowSettings gws, NativeWindowSettings nws) 
     
     public new string Title { get => base.Title; set => base.Title = value; } // Only for bridging
     public new Vector2 Size { get => new(FramebufferSize.X, FramebufferSize.Y); }
-
+    
     public new bool VSync {
         get => base.VSync == VSyncMode.On;
         set => base.VSync = value ? VSyncMode.On : VSyncMode.Off;
@@ -57,6 +57,7 @@ internal class GlWindowBridge(GameWindowSettings gws, NativeWindowSettings nws) 
     protected override void OnRenderFrame(FrameEventArgs args) => App.Render();
     protected override void OnUpdateFrame(FrameEventArgs args) => App.Update();
     protected override void OnFramebufferResize(FramebufferResizeEventArgs e) => App.Resize(FramebufferSize.X, FramebufferSize.Y, GetDpi());
+    protected override void OnResize(ResizeEventArgs e) => App.CanvasScale = GetDpi(); // May fix DPI issues when slowly moving window between displays on macOS
     
     protected override void OnKeyDown(KeyboardKeyEventArgs e) {
         if (e.IsRepeat) return;

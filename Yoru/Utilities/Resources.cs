@@ -4,10 +4,10 @@ using System.Text;
 namespace Yoru.Utilities;
 
 public static class Resources {
-    public static ResourceLoader LocalData { get; } = new(); // For resources that are loaded from the filesystem
+    public static ResourceLoader LocalData { get; } = new();        // For resources that are loaded from the filesystem
     public static ResourceLoader YoruResourceData { get; } = new(); // For resources that are embedded in Yoru's assembly
-    public static ResourceLoader ResourceData { get; } = new(); // For resources that are embedded in the calling assembly
-
+    public static ResourceLoader ResourceData { get; } = new();     // For resources that are embedded in the calling assembly
+    
     public static Assembly YoruAssembly {
         get => Assembly.GetExecutingAssembly();
     }
@@ -70,7 +70,7 @@ public static class Resources {
         LocalData.LoadResource(path, file);
         return file;
     }
-
+    
     public static string? LoadResourceFileS(string path) {
         if (LoadResourceFile(path) is { } data)
             return Encoding.UTF8.GetString(data);

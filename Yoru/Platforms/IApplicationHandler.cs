@@ -9,7 +9,7 @@ public interface IApplicationHandler {
     public double RenderFrequency { get; set; }
     public double UpdateFrequency { get; set; }
     public bool VSync { get; set; }
-
+    
     
     public void Close();
     public void Run();

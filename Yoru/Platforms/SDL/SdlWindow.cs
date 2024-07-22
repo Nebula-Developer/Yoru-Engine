@@ -12,6 +12,8 @@ using MouseButton = MouseButton;
 public unsafe class SdlWindow : IApplicationHandler {
     private double _renderFrequency = 300;
     private string _title = "Yoru App";
+    
+    private bool _vsync = true;
     public Application App;
     public SdlRenderer Renderer;
     
@@ -45,7 +47,7 @@ public unsafe class SdlWindow : IApplicationHandler {
         }
         set => Sdl.SetWindowSize(Window, (int)value.X, (int)value.Y);
     }
-
+    
     public bool VSync {
         get => _vsync;
         set {
@@ -53,8 +55,6 @@ public unsafe class SdlWindow : IApplicationHandler {
             Sdl.GLSetSwapInterval(value ? 1 : 0);
         }
     }
-    
-    private bool _vsync = true;
     
     public void Run() {
         if (Sdl.Init(Sdl.InitVideo | Sdl.InitEvents) != 0)

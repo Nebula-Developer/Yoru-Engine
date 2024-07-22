@@ -211,7 +211,9 @@ public class Element : IDisposable {
     }
     
     protected virtual bool ShouldRender(SKCanvas canvas, bool matrixApplied = true)
-        => matrixApplied ? !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y)) : !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
+        => matrixApplied
+            ? !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y))
+            : !canvas.QuickReject(new SKRect(0, 0, Transform.Size.X, Transform.Size.Y));
     
     public void Update() {
         OnUpdate();
@@ -233,6 +235,7 @@ public class Element : IDisposable {
                     DoRender?.Invoke(canvas);
                     OnRenderChildren(canvas);
                 }
+                
                 break;
             case ElementDrawingMethod.PathOutline:
                 using (SKAutoCanvasRestore _ = new(canvas)) {
@@ -251,7 +254,7 @@ public class Element : IDisposable {
                         IsDither = true,
                         IsStroke = true
                     });
-
+                    
                     OnRenderChildren(canvas);
                 }
                 
