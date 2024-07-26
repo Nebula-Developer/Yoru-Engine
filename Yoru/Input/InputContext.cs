@@ -11,10 +11,10 @@ public class InputContext(Application app) : AppContext(app) {
     private readonly Dictionary<Key, int> _pressedKeys = new();
     private readonly Dictionary<MouseButton, int> _releasedButtons = new();
     private readonly Dictionary<Key, int> _releasedKeys = new();
-    public readonly Dictionary<Element, bool> HoveredElementBlocking = new();
+    internal readonly Dictionary<Element, bool> HoveredElementBlocking = new();
     
-    public readonly List<Element> HoveredElements = new();
-    public List<Element> InteractingElements = new();
+    internal readonly List<Element> HoveredElements = new();
+    internal List<Element> InteractingElements = new();
     public int MaskIndex = 0;
     private HashSet<Key> _keys { get; } = new();
     private HashSet<MouseButton> _buttons { get; } = new();
@@ -96,11 +96,9 @@ public class InputContext(Application app) : AppContext(app) {
             if (!HoveredElements.Contains(completed[i])) {
                 HoveredElementBlocking[completed[i]] = completed[i].MouseEnter();
                 HoveredElements.Add(completed[i]);
-                if (!HoveredElementBlocking[completed[i]]) {
-                    referenceFromPoint(i);
-                    break;
-                }
-            } else if (!HoveredElementBlocking[completed[i]]) {
+            }
+            
+            if (HoveredElementBlocking[completed[i]]) {
                 referenceFromPoint(i);
                 break;
             }
