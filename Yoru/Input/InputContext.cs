@@ -94,9 +94,8 @@ public class InputContext(Application app) : AppContext(app) {
         
         for (var i = 0; i < completed.Count; i++) {
             if (!HoveredElements.Contains(completed[i])) {
-                completed[i].MouseEnter();
+                HoveredElementBlocking[completed[i]] = completed[i].MouseEnter();
                 HoveredElements.Add(completed[i]);
-                HoveredElementBlocking[completed[i]] = completed[i].MaskMouseEvents; // TODO: Replace with MouseEnter() boolean return
                 if (!HoveredElementBlocking[completed[i]]) {
                     referenceFromPoint(i);
                     break;
@@ -140,8 +139,7 @@ public class InputContext(Application app) : AppContext(app) {
         for (var i = InteractingElements.Count - 1; i >= 0; i--) {
             var x = InteractingElements.ElementAt(i);
             _pressedElements[button].Add(x);
-            x.MouseDown(button);
-            if (!x.MaskMouseEvents) break;
+            if (x.MouseDown(button)) break;
         }
     }
     

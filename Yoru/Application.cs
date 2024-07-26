@@ -48,6 +48,11 @@ public class Application {
             return _element;
         }
     }
+
+    public void AddChild(Element element) => Element.AddChild(element);
+    public void AddChildren(params Element[] element) => Element.AddChildren(element);
+    public void RemoveChild(Element element) => Element.RemoveChild(element);
+    public void ClearChildren() => Element.ClearChildren();
     
     public void Load() {
         Renderer.Load();

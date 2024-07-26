@@ -2,13 +2,15 @@ using System.Diagnostics;
 using SkiaSharp;
 using Xunit.Abstractions;
 using Yoru.Elements;
+using Yoru.Graphics;
 
 namespace Yoru.Tests;
 
-public class HeadlessTests(ITestOutputHelper output) {
+[ApplicationTest]
+public class HeadlessTests {
     [Fact]
     public void CreateHeadless() {
-        Application app = new();
+        Application app = ApplicationInstance.GetApplication();
         Assert.True(app.Renderer.Surface is null);
         app.Load();
         Assert.True(app.Renderer.Surface is not null);
@@ -16,7 +18,7 @@ public class HeadlessTests(ITestOutputHelper output) {
     
     [Fact]
     public void TrialCanvasScale() {
-        Application app = new();
+        Application app = ApplicationInstance.GetApplication();
         BoxElement box = new() {
             Color = SKColors.Red,
             Transform = new() {
@@ -28,18 +30,22 @@ public class HeadlessTests(ITestOutputHelper output) {
         
         app.Element.AddChild(box);
         
-        Stopwatch scaleWatch = new();
         app.CanvasScale = new(2);
         app.Load();
+
         app.CanvasScale = new(4);
+        Assert.Equal(new(4), app.CanvasScale);
+
         app.Resize(1920, 1080);
+
         app.CanvasScale = new(6);
         app.Render();
+        Assert.Equal(1920 / 6, (int)app.Element.Transform.Size.X);
+
         app.CanvasScale = new(8);
-        
-        output.WriteLine($"Canvas scale time: {scaleWatch.ElapsedMilliseconds}ms");
-        
+        app.Render();
         Assert.Equal(1920 / 8, (int)app.Element.Transform.Size.X);
+
         Assert.Equal(1920, app.FramebufferSize.X);
     }
 }

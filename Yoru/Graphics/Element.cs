@@ -18,8 +18,6 @@ public class Element : IDisposable {
     
     private int _zIndex;
     public bool Cull { get; set; } = true;
-    public bool MaskMouseEvents { get; set; } = true;
-    public bool HandleMouseEvents { get; set; } = true;
     public bool MouseInteraction { get; set; } = true;
     public bool ApplyTransformMatrix { get; set; } = true;
     
@@ -105,10 +103,10 @@ public class Element : IDisposable {
     public Action DoLoad { get; set; }
     public Action DoUnload { get; set; }
     
-    public Action<MouseButton> DoMouseDown { get; set; }
+    public Func<MouseButton, bool> DoMouseDown { get; set; }
     public Action<MouseButton> DoMouseUp { get; set; }
     public Action<Vector2> DoMouseMove { get; set; }
-    public Action DoMouseEnter { get; set; }
+    public Func<bool> DoMouseEnter { get; set; }
     public Action DoMouseLeave { get; set; }
     
     public Action DoChildAdded { get; set; }
@@ -170,6 +168,16 @@ public class Element : IDisposable {
         if (child.Parent == this)
             child.Parent = null;
     }
+
+    public void ClearChildren() {
+        for (var i = 0; i < _children.Count; i++)
+            RemoveChild(_children[i]);
+    }
+
+    public void AddChildren(params Element[] children) {
+        foreach (var child in children)
+            AddChild(child);
+    }
     
     protected virtual void OnUpdate() { }
     protected virtual void OnRender(SKCanvas canvas) { }
@@ -178,10 +186,10 @@ public class Element : IDisposable {
     protected virtual void OnUnload() { }
     protected virtual void OnRenderChildren(SKCanvas canvas) => ForChildren(child => child.Render(canvas));
     
-    protected virtual void OnMouseDown(MouseButton button) { }
+    protected virtual bool OnMouseDown(MouseButton button) => false;
     protected virtual void OnMouseUp(MouseButton button) { }
     protected virtual void OnMouseMove(Vector2 position) { }
-    protected virtual void OnMouseEnter() { }
+    protected virtual bool OnMouseEnter() => false;
     protected virtual void OnMouseLeave() { }
     
     protected virtual void OnChildAdded(Element child) { }
@@ -222,10 +230,20 @@ public class Element : IDisposable {
     }
     
     public void Render(SKCanvas canvas) {
-        if (App == null || App.DrawingMethod == ElementDrawingMethod.None) return;
-        App.Debugging.RenderDepth++;
-        
         using SKAutoCanvasRestore restore = new(canvas);
+        if (App == null) {
+            canvas.SetMatrix(Transform.Matrix);
+
+            if (!Cull || ShouldRender(canvas, false)) {
+                OnRender(canvas);
+                DoRender?.Invoke(canvas);
+                OnRenderChildren(canvas);
+            }
+                
+            return;
+        }
+
+        App.Debugging.RenderDepth++;
         
         switch (App.DrawingMethod) {
             case ElementDrawingMethod.Render:
@@ -268,10 +286,10 @@ public class Element : IDisposable {
         ForChildren(child => child.Resize(width, height));
     }
     
-    private static T ReturnVirtualPair<T>(Func<T> func, Action action) {
-        var result = func();
-        action?.Invoke();
-        return result;
+    private static bool ReturnVirtualPair(Func<bool> func, Func<bool> action) {
+        var resA = func?.Invoke();
+        var resB = action?.Invoke();
+        return resA ?? resB ?? false;
     }
     
     private static void InvokeVirtualPair(Action method, Action action) {
@@ -280,18 +298,18 @@ public class Element : IDisposable {
     }
     
     public void Load() => InvokeVirtualPair(OnLoad, DoLoad);
-    public void MouseDown(MouseButton button) => InvokeVirtualPair(() => {
+    public bool MouseDown(MouseButton button) => ReturnVirtualPair(() => {
         IsButtonDown[button] = true;
-        OnMouseDown(button);
-    }, () => DoMouseDown?.Invoke(button));
+        return OnMouseDown(button);
+    }, () => DoMouseDown?.Invoke(button) ?? false);
     public void MouseUp(MouseButton button) => InvokeVirtualPair(() => {
         IsButtonDown[button] = false;
         OnMouseUp(button);
     }, () => DoMouseUp?.Invoke(button));
     public void MouseMove(Vector2 position) => InvokeVirtualPair(() => OnMouseMove(position), () => DoMouseMove?.Invoke(position));
-    public void MouseEnter() => InvokeVirtualPair(() => {
+    public bool MouseEnter() => ReturnVirtualPair(() => {
         IsMouseOver = true;
-        OnMouseEnter();
+        return OnMouseEnter();
     }, DoMouseEnter);
     public void MouseLeave() => InvokeVirtualPair(() => {
         IsMouseOver = false;

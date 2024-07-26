@@ -13,12 +13,13 @@ public class DraggableElement : Element {
     private Vector2 _startPos;
     public MouseButton Button { get; set; } = MouseButton.Left;
     
-    protected override void OnMouseDown(MouseButton button) {
-        if (button != Button) return;
+    protected override bool OnMouseDown(MouseButton button) {
+        if (button != Button) return false;
         _curButton = Button;
         base.OnMouseDown(button);
         _mouseStart = App.Input.MousePosition;
         _startPos = Transform.WorldPosition;
+        return false;
     }
     
     protected override void OnMouseUp(MouseButton button) {
