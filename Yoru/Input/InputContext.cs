@@ -70,8 +70,8 @@ public class InputContext(Application app) : AppContext(app) {
         var elm = queue.Dequeue();
         
         for (var i = 0; i < elm.Children.Count; i++) {
+            queue.Enqueue(elm.Children[i]);
             if (elm.Children[i].PointIntersects(MousePosition)) {
-                queue.Enqueue(elm.Children[i]);
                 interactingElements.Add(elm.Children[i]);
             }
         }
@@ -110,8 +110,7 @@ public class InputContext(Application app) : AppContext(app) {
         for (var i = 0; i < HoveredElements.Count; i++) {
             if (!completed.Contains(HoveredElements[i])) {
                 HoveredElements[i].MouseLeave();
-                if (HoveredElementBlocking.ContainsKey(HoveredElements[i]))
-                    HoveredElementBlocking.Remove(HoveredElements[i]);
+                HoveredElementBlocking.Remove(HoveredElements[i]);
                 HoveredElements.RemoveAt(i--);
             }
         }
